@@ -45,7 +45,7 @@
                 <mat-card class="w-full h-full flex flex-col" [class.border-red-500]="sesion.tiempoRestanteSegundos === 0" [class.border-2]="sesion.tiempoRestanteSegundos === 0">
                     <mat-card-header class="bg-gray-50 p-4">
                         <mat-card-title class="text-lg font-bold">{{ sesion.nombreProducto }}</mat-card-title>
-                        <mat-card-subtitle>Inició: {{ sesion.horaInicio | date:'shortTime':'America/Bogota' }}</mat-card-subtitle>
+                        <mat-card-subtitle>Inició: {{ sesion.horaInicio | date:'shortTime' }}</mat-card-subtitle>
                     </mat-card-header>
 
                     <mat-card-content class="flex-grow p-4 space-y-4">

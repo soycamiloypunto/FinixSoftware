@@ -45,7 +45,7 @@ services:
       dockerfile: Dockerfile
     container_name: finix-frontend
     ports:
-      - "4200:4200"
+      - "4200:4000"
     restart: unless-stopped
     depends_on:
       - backend

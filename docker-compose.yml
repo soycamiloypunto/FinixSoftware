@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  # Servicio para el backend de Spring Boot
+  backend:
+    build:
+      context: ./finix # Ruta a la carpeta del backend
+      dockerfile: Dockerfile
+    container_name: finix-backend
+    ports:
+      - "8080:8080" # Mapea el puerto 8080 del host al 8080 del contenedor
+    restart: unless-stopped
+
+  # Servicio para el frontend de Angular
+  frontend:
+    build:
+      context: ./finix_frontend/finix_frontend # Ruta a la carpeta del frontend
+      dockerfile: Dockerfile
+    container_name: finix-frontend
+    ports:
+      - "4200:4200" # Mapea el puerto 4200 del host al 4200 del contenedor
+    restart: unless-stopped
+    depends_on:
+      - backend # Asegura que el backend se inicie antes que el frontend

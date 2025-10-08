@@ -1,24 +1,55 @@
 version: '3.8'
 
 services:
-  # Servicio para el backend de Spring Boot
+  # Servicio para la base de datos MySQL
+  db:
+    image: mysql:8.0
+    container_name: finix-mysql-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: finixdb
+      MYSQL_USER: finixuser
+      MYSQL_PASSWORD: finixpassword
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      # --- CAMBIO CLAVE AQUÍ ---
+      # Mapea el puerto 3307 de tu máquina (host) al puerto 3306 del contenedor.
+      # Tu MySQL local puede seguir usando el puerto 3306 sin problemas.
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  # Servicio para el backend (no necesita cambios)
   backend:
     build:
-      context: ./finix # Ruta a la carpeta del backend
+      context: ./finix
       dockerfile: Dockerfile
     container_name: finix-backend
     ports:
-      - "8080:8080" # Mapea el puerto 8080 del host al 8080 del contenedor
+      - "8080:8080"
     restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/finixdb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: finixuser
+      SPRING_DATASOURCE_PASSWORD: finixpassword
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
 
-  # Servicio para el frontend de Angular
+  # Servicio para el frontend (no necesita cambios)
   frontend:
     build:
-      context: ./finix_frontend/finix_frontend # Ruta a la carpeta del frontend
+      # --- RUTA CORREGIDA ---
+      # Ahora apunta directamente a la carpeta del frontend, sin la anidación.
+      context: ./finix_frontend
       dockerfile: Dockerfile
     container_name: finix-frontend
     ports:
-      - "4200:4200" # Mapea el puerto 4200 del host al 4200 del contenedor
+      - "4200:4200"
     restart: unless-stopped
     depends_on:
-      - backend # Asegura que el backend se inicie antes que el frontend
+      - backend
+
+volumes:
+  mysql_data:
+

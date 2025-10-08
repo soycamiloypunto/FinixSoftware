@@ -1,0 +1,19 @@
+<button
+  [type]="type"
+  [disabled]="disabled || loading"
+  (click)="onClick($event)"
+  [ngClass]="getButtonClasses()"
+  class="flex items-center justify-center gap-x-2 px-4 py-2 rounded-lg font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2"
+>
+  @if (loading) {
+    <mat-progress-spinner
+      [diameter]="20"
+      mode="indeterminate"
+      [ngClass]="variant === 'stroked' ? 'text-slate-600' : 'text-white'"
+    ></mat-progress-spinner>
+    <span>Procesando...</span>
+  } @else {
+    <!-- Aquí se proyectará el texto o ícono que pongas dentro de la etiqueta del botón -->
+    <ng-content></ng-content>
+  }
+</button>

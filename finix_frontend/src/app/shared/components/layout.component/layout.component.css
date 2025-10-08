@@ -1,0 +1,4 @@
+/* Estilos para asegurar que el sidenav ocupe toda la altura */
+mat-sidenav-container {
+  height: 100vh;
+}

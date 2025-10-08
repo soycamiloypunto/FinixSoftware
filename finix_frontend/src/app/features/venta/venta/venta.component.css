@@ -1,0 +1,18 @@
+:host {
+  display: block;
+}
+
+/* Asegura que la tabla de detalles no se comprima demasiado en pantallas medianas,
+  permitiendo que se desplace horizontalmente si es necesario.
+*/
+.mat-mdc-table {
+  min-width: 600px;
+}
+
+/* Ajusta el tamaño del icono dentro del botón de cantidad para que se vea más delicado */
+.mat-mdc-icon-button mat-icon {
+    font-size: 20px;
+    height: 20px;
+    width: 20px;
+    line-height: 20px;
+}

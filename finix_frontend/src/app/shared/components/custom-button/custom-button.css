@@ -1,0 +1,16 @@
+:host {
+  display: inline-block;
+}
+
+/* Ajustes para que el color del spinner se vea bien sobre los botones de colores.
+  Necesitamos sobreescribir las variables CSS que usa Angular Material.
+*/
+.mat-primary .mat-mdc-progress-spinner {
+    --mdc-circular-progress-active-indicator-color: white;
+}
+.mat-accent .mat-mdc-progress-spinner {
+    --mdc-circular-progress-active-indicator-color: white;
+}
+.mat-warn .mat-mdc-progress-spinner {
+    --mdc-circular-progress-active-indicator-color: white;
+}

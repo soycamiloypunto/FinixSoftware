@@ -1,0 +1,4 @@
+/* Estilos para asegurar que las tarjetas se vean bien en el grid */
+mat-card {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+}

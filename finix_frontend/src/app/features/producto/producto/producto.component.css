@@ -1,0 +1,5 @@
+/* Usaremos principalmente Tailwind, pero podemos añadir estilos globales aquí si es necesario. */
+/* Por ejemplo, para personalizar las notificaciones del snack-bar */
+:host {
+  display: block;
+}

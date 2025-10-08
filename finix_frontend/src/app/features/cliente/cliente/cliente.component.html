@@ -1,0 +1,83 @@
+<div class="p-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Administrar Clientes</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <!-- Columna Izquierda: Tabla de Clientes -->
+        <div class="md:col-span-2">
+            <mat-card class="overflow-auto">
+                <table mat-table [dataSource]="clientes()" class="w-full">
+                    
+                    <!-- Columna Nombre -->
+                    <ng-container matColumnDef="nombre">
+                        <th mat-header-cell *matHeaderCellDef> Nombre </th>
+                        <td mat-cell *matCellDef="let cliente"> {{cliente.nombre}} </td>
+                    </ng-container>
+
+                    <!-- Columna Documento -->
+                    <ng-container matColumnDef="documento">
+                        <th mat-header-cell *matHeaderCellDef> Documento </th>
+                        <td mat-cell *matCellDef="let cliente"> {{cliente.documento || 'N/A'}} </td>
+                    </ng-container>
+
+                    <!-- Columna Acciones -->
+                    <ng-container matColumnDef="acciones">
+                        <th mat-header-cell *matHeaderCellDef class="text-right"> Acciones </th>
+                        <td mat-cell *matCellDef="let cliente" class="text-right">
+                            <button mat-icon-button color="primary" (click)="seleccionarCliente(cliente)" matTooltip="Editar">
+                                <mat-icon>edit</mat-icon>
+                            </button>
+                            <button mat-icon-button color="warn" (click)="eliminarCliente(cliente.id)" matTooltip="Eliminar">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                </table>
+
+                 <div *ngIf="clientes().length === 0" class="text-center p-4 text-gray-500">
+                    No se encontraron clientes.
+                </div>
+            </mat-card>
+        </div>
+
+        <!-- Columna Derecha: Formulario para Crear/Editar -->
+        <div class="md:col-span-1">
+            <mat-card>
+                <mat-card-title>{{ clienteSeleccionado()?.id ? 'Editar Cliente' : 'Nuevo Cliente' }}</mat-card-title>
+                <mat-card-content>
+                    <!-- El formulario solo se muestra si hay un cliente seleccionado (incluso uno nuevo y vacío) -->
+                    <form *ngIf="clienteSeleccionado() as cliente" #formCliente="ngForm" (ngSubmit)="guardarCliente()" class="flex flex-col gap-4 mt-4">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Nombre Completo</mat-label>
+                            <input matInput [(ngModel)]="cliente.nombre" name="nombre" required>
+                        </mat-form-field>
+                        
+                        <mat-form-field appearance="outline">
+                            <mat-label>Documento</mat-label>
+                            <input matInput [(ngModel)]="cliente.documento" name="documento">
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Teléfono</mat-label>
+                            <input matInput [(ngModel)]="cliente.telefono" name="telefono">
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline">
+                            <mat-label>Email</mat-label>
+                            <input matInput type="email" [(ngModel)]="cliente.email" name="email">
+                        </mat-form-field>
+
+                        <div class="flex gap-2 justify-end mt-2">
+                            <button mat-stroked-button type="button" (click)="seleccionarCliente(null)">Cancelar</button>
+                            <button mat-flat-button color="primary" type="submit" [disabled]="!formCliente.valid">Guardar</button>
+                        </div>
+                    </form>
+                </mat-card-content>
+            </mat-card>
+        </div>
+
+    </div>
+</div>

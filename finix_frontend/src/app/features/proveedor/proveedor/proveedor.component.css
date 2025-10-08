@@ -1,0 +1,12 @@
+/* --- ESTO ES LO QUE VERÁS EN EL PANEL 'STYLES' --- */
+
+/* Esta es la regla que está causando el problema (EJEMPLO) */
+/* La herramienta te dirá el nombre del archivo, ej: styles.css:25 */
+form {
+    gap: 0px !important;  /* <-- La herramienta te mostrará la regla conflictiva */
+}
+
+/* Esta es la regla de Tailwind que está siendo anulada */
+.gap-4 {
+    gap: 1rem; /* <-- Aparecerá TACHADA */
+}

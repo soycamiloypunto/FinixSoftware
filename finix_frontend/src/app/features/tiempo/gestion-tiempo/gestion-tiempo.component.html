@@ -1,0 +1,106 @@
+<div class="p-4 sm:p-8 bg-gray-50 min-h-screen">
+    <mat-card class="mb-8">
+        <mat-card-header>
+            <mat-card-title class="text-xl font-semibold">Iniciar Nueva Sesión</mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="pt-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                <mat-form-field appearance="fill" class="w-full">
+                    <mat-label>Servicio (PC / Consola)</mat-label>
+                    <mat-select [(ngModel)]="nuevoProductoId" required>
+                        @for (p of productosDeTiempo(); track p.id) {
+                            <mat-option [value]="p.id">{{ p.nombre }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+
+                <app-custom-input
+                    label="Minutos (Opcional)"
+                    type="number"
+                    placeholder="Libre si está vacío"
+                    [(ngModel)]="nuevoTiempoMinutos">
+                </app-custom-input>
+
+                <app-custom-button 
+                    color="primary" 
+                    class="w-full h-14 text-lg" 
+                    (buttonClick)="iniciarNuevaSesion()" 
+                    [disabled]="!nuevoProductoId">
+                    <mat-icon>play_circle_filled</mat-icon>
+                    <span>INICIAR</span>
+                </app-custom-button>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <h2 class="text-2xl font-bold text-gray-700 mb-4">Sesiones Activas</h2>
+    
+    @if (isLoading()) {
+        <div class="flex justify-center items-center h-64"><mat-progress-spinner mode="indeterminate"></mat-progress-spinner></div>
+    } @else if (sesionesActivas().length === 0) {
+        <div class="text-center p-12 bg-white rounded-lg shadow-sm border"><mat-icon class="text-6xl text-gray-300">hourglass_disabled</mat-icon><p class="mt-4 text-gray-500">No hay sesiones activas.</p></div>
+    } @else {
+        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+            @for (sesion of sesionesActivas(); track sesion.id) {
+                <mat-card class="w-full h-full flex flex-col" [class.border-red-500]="sesion.tiempoRestanteSegundos === 0" [class.border-2]="sesion.tiempoRestanteSegundos === 0">
+                    <mat-card-header class="bg-gray-50 p-4">
+                        <mat-card-title class="text-lg font-bold">{{ sesion.nombreProducto }}</mat-card-title>
+                        <mat-card-subtitle>Inició: {{ sesion.horaInicio | date:'shortTime' }}</mat-card-subtitle>
+                    </mat-card-header>
+
+                    <mat-card-content class="flex-grow p-4 space-y-4">
+                        <div class="text-center">
+                            @if (sesion.esContadorAscendente) {
+                                <div class="text-green-600"><div class="text-sm font-medium">Tiempo Transcurrido</div><div class="text-5xl font-mono font-bold">{{ formatTiempo(sesion.tiempoTranscurridoSegundos || 0) }}</div></div>
+                            } @else {
+                                <div [class.text-red-600]="sesion.tiempoRestanteSegundos !== undefined && sesion.tiempoRestanteSegundos < 300" [class.animate-pulse]="sesion.tiempoRestanteSegundos === 0">
+                                    <div class="text-sm font-medium">Tiempo Restante</div><div class="text-5xl font-mono font-bold">{{ formatTiempo(sesion.tiempoRestanteSegundos || 0) }}</div>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="border-t pt-3">
+                            <h3 class="text-sm font-semibold text-gray-600 mb-2">Consumos Adicionales:</h3>
+                            @if (!sesion.productosAdicionales?.length) {
+                                <p class="text-xs text-gray-400">Ninguno</p>
+                            } @else {
+                                <ul class="text-xs space-y-1">
+                                    @for (item of sesion.productosAdicionales; track item.productoId) {
+                                        <li class="flex justify-between">
+                                            <span>{{item.cantidad}}x {{ item.nombreProducto }}</span>
+                                            <span class="font-medium">{{ formatCurrency(item.total) }}</span>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        </div>
+
+                        <div class="flex-grow"></div>
+                        <div class="border-t pt-3 space-y-2 text-sm">
+                             <div class="flex justify-between"><span>Consumo Tiempo:</span><span class="font-semibold">{{ formatCurrency(sesion.valorTiempo || 0) }}</span></div>
+                             <div class="flex justify-between"><span>Consumo Productos:</span><span class="font-semibold">{{ formatCurrency(sesion.valorProductos || 0) }}</span></div>
+                             <div class="flex justify-between font-bold text-lg border-t pt-1 mt-1"><span>TOTAL A PAGAR:</span><span>{{ formatCurrency(sesion.valorTotal || 0) }}</span></div>
+                        </div>
+                    </mat-card-content>
+                    
+                    <mat-card-actions class="p-2 border-t flex justify-around">
+                        <app-custom-button 
+                            variant="stroked" 
+                            color="accent" 
+                            (buttonClick)="abrirDialogoVender(sesion.id!)" 
+                            matTooltip="Vender producto a esta sesión">
+                            <mat-icon>add_shopping_cart</mat-icon> Vender
+                        </app-custom-button>
+                        
+                        <app-custom-button 
+                            color="warn" 
+                            (buttonClick)="cobrarSesion(sesion)" 
+                            class="font-bold">
+                            <mat-icon>price_check</mat-icon> COBRAR
+                        </app-custom-button>
+                    </mat-card-actions>
+                </mat-card>
+            }
+        </div>
+    }
+</div>

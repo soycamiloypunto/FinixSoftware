@@ -1,0 +1,70 @@
+/* --- archivo: src/styles.css --- */
+
+/* 1. IMPORTA EL TEMA PRE-CONSTRUIDO DE ANGULAR MATERIAL */
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+
+/* 2. IMPORTACIONES BASE DE TAILWIND CSS */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* --- ESTILOS GLOBALES PERSONALIZADOS --- */
+
+/* 3. Estilo base para el cuerpo */
+body {
+  @apply bg-slate-50;
+  font-family: 'Inter', sans-serif;
+}
+
+/* 4. Mejoras a los mat-form-field */
+.mat-mdc-form-field .mdc-text-field--outlined {
+  @apply rounded-lg transition-colors duration-200;
+}
+
+/*
+  CORRECCIÓN DEFINITIVA para las líneas divisorias:
+  Sabiendo que el problema es solo con `appearance="outline"`, podemos crear un selector
+  de CSS súper específico para atacar el problema sin efectos secundarios.
+  
+  La estrategia es forzar el ancho de los bordes internos a CERO. La alta especificidad
+  del selector (`.mat-appearance-outline`) asegura que nuestro estilo gane la batalla
+  contra los de Angular Material.
+*/
+.mat-mdc-form-field .mdc-notched-outline > * {
+  border-color: #cbd5e1 !important; /* Color base para todos los segmentos */
+  transition: border-color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mat-mdc-form-field:not(.mat-focused):hover .mdc-notched-outline > * {
+  border-color: #94a3b8 !important; /* Color para el estado hover */
+}
+
+/* Aquí está la magia: eliminamos los bordes que se solapan solo en la apariencia "outline" */
+.mat-mdc-form-field.mat-appearance-outline .mdc-notched-outline__leading {
+  border-right-width: 0 !important;
+}
+.mat-mdc-form-field.mat-appearance-outline .mdc-notched-outline__trailing {
+  border-left-width: 0 !important;
+}
+/* Fin de la corrección */
+
+
+.mat-mdc-form-field .mdc-floating-label {
+  @apply font-medium;
+}
+
+/* 5. Estilos para el dialog-frame */
+.custom-dialog-container .mat-mdc-dialog-container .mdc-dialog__surface {
+  padding: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+/* 6. CORRECCIÓN: Oculta la línea inferior extra en los mat-input */
+.mat-mdc-form-field .mat-mdc-line-ripple {
+    display: none !important;
+}
+

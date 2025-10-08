@@ -24,3 +24,18 @@ export interface VentaModel {
     cambio?: number;
     detalles: VentaDetalleModel[];
 }
+
+// --- archivo: /models/venta.model.ts ---
+
+/**
+ * Representa un item de producto vendido, ya sea en una venta normal o
+ * como un adicional dentro de una sesión de tiempo.
+ */
+export interface VentaItem {
+  id?: number; // El backend debería devolver el ID del registro creado
+  productoId: number;
+  nombreProducto: string; // Útil para mostrar en el frontend sin hacer otra consulta
+  cantidad: number;
+  precioUnitario: number; // Precio al momento de la venta
+  total: number;
+}

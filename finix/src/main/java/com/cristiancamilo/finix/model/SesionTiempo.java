@@ -6,6 +6,8 @@ import java.math.BigDecimal;
 // --- IMPORTACIONES NUEVAS Y CORREGIDAS ---
 import java.time.ZonedDateTime;
 import java.time.ZoneId;
+import java.util.List; // <-- AÑADIR ESTA IMPORTACIÓN
+import java.util.ArrayList; // <-- AÑADIR ESTA IMPORTACIÓN
 
 @Entity
 @Data
@@ -45,4 +47,12 @@ public class SesionTiempo {
 
     // Para identificar la máquina o consola
     private String puesto;
+
+    // --- NUEVA RELACIÓN ---
+    // Una sesión de tiempo puede tener muchos productos adicionales vendidos.
+    // CascadeType.ALL: si se borra la sesión, se borran los productos asociados.
+    // FetchType.EAGER: cuando se cargue una sesión, Cargar también sus productos. ¡Importante para que se envíen al frontend!
+    @OneToMany(mappedBy = "sesionTiempo", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<SesionProductoAdicional> productosAdicionales = new ArrayList<>();
+
 }

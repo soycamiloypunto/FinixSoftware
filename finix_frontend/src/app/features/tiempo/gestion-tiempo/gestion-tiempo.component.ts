@@ -3,7 +3,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators, FormControl, FormGroup } from '@angular/forms';
 import { Observable, interval, Subscription, startWith, map, forkJoin, finalize } from 'rxjs';
 
-// --- Módulos de Angular Material (solo los necesarios) ---
+// --- Módulos de Angular Material ---
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -23,20 +23,13 @@ import { DialogFrameComponent } from '../../../shared/components/dialog-frame/di
 
 // --- Modelos, DTOs y Servicios ---
 import { SesionTiempo as SesionTiempoModel } from '../models/sesiontiempo.model';
-import { IniciarSesionRequest } from '../dto/sesion.model';
-import { GestionTiempoService } from '../services/sesiontiempo.service';
+import { IniciarSesionRequest, AgregarProductoRequest } from '../dto/sesion.dto'; // <-- DTO ACTUALIZADO
+import { GestionTiempoService } from '../services/gestiontiempo.service';
 import { ProductoService } from '../../producto/services/producto.services';
 import { ProductoModel } from '../../producto/models/producto.model';
+import { VentaItem } from '../../venta/models/venta.model';
 
-// --- Modelos para la Venta ---
-export interface VentaItem {
-  productoId: number;
-  nombreProducto: string;
-  cantidad: number;
-  precioUnitario: number;
-  total: number;
-}
-
+// --- Modelo para la UI que combina datos ---
 export interface SesionTiempoUI extends SesionTiempoModel {
   nombreProducto?: string;
   precioPorHora?: number;
@@ -49,7 +42,7 @@ export interface SesionTiempoUI extends SesionTiempoModel {
   valorTotal?: number;
 }
 
-// --- DIÁLOGO DE CONFIRMACIÓN REUTILIZABLE ---
+// --- DIÁLOGO DE CONFIRMACIÓN REUTILIZABLE (Sin cambios) ---
 @Component({
   selector: 'dialog-confirmacion-tiempo',
   template: `
@@ -73,7 +66,7 @@ export class ConfirmacionDialogComponent {
 }
 
 
-// --- COMPONENTE DE DIÁLOGO PARA VENDER PRODUCTOS (sin cambios) ---
+// --- COMPONENTE DE DIÁLOGO PARA VENDER PRODUCTOS (Sin cambios) ---
 @Component({
   selector: 'dialog-vender-producto',
   template: `
@@ -113,13 +106,7 @@ export class ConfirmacionDialogComponent {
 export class VenderProductoDialogComponent implements OnInit {
   private fb = inject(FormBuilder);
   public dialogRef = inject(MatDialogRef<VenderProductoDialogComponent>);
-
-  public data = inject(MAT_DIALOG_DATA) as {
-      producto: Partial<ProductoModel> | null,
-      productos: ProductoModel[]
-    };
-
-
+  public data = inject(MAT_DIALOG_DATA) as { productos: ProductoModel[] };
   form: FormGroup;
   productoCtrl = new FormControl<string | ProductoModel>('');
   filteredProductos!: Observable<ProductoModel[]>;
@@ -145,7 +132,6 @@ export class VenderProductoDialogComponent implements OnInit {
   onProductoSelected(event: MatAutocompleteSelectedEvent) {
     this.selectedProduct = event.option.value;
     this.form.patchValue({ productoId: this.selectedProduct?.id });
-    this.form.get('productoId')?.updateValueAndValidity();
   }
   onNoClick(): void { this.dialogRef.close(); }
   onSaveClick(): void {
@@ -205,8 +191,7 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
     this.timerSubscription?.unsubscribe();
     this.audioContext?.close();
   }
-  
-  // --- MÉTODO cobrarSesion ACTUALIZADO ---
+
   cobrarSesion(sesion: SesionTiempoUI): void {
     const totalFormateado = this.formatCurrency(sesion.valorTotal || 0);
     const dialogRef = this.dialog.open(ConfirmacionDialogComponent, {
@@ -221,7 +206,6 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe(confirmado => {
       if (confirmado) {
-        // Si el usuario confirma, procedemos con la lógica original
         this.tiempoService.finalizarSesion(sesion.id!).subscribe({
           next: () => {
             this.sesionesActivas.update(sesiones => sesiones.filter(s => s.id !== sesion.id));
@@ -233,9 +217,7 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
     });
   }
 
-  // (El resto de la lógica de la clase no necesita cambios)
-  // ... cargarDatosIniciales, iniciarNuevaSesion, etc. ...
-    cargarDatosIniciales(): void {
+  cargarDatosIniciales(): void {
     this.isLoading.set(true);
     forkJoin({
       productos: this.productoService.getAll(),
@@ -247,12 +229,12 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
         this.productosDeTiempo.set(productos.filter(p => p.esServicioDeTiempo));
         this.productosParaVenta.set(productos.filter(p => !p.esServicioDeTiempo));
         const sesionesUI: SesionTiempoUI[] = sesiones
-          .filter(s => s.productoServicio != null) 
+          .filter(s => s.productoServicio != null)
           .map(s => ({
             ...s,
             nombreProducto: s.productoServicio?.nombre || 'Servicio no encontrado',
             precioPorHora: s.productoServicio?.precioVenta || 0,
-            productosAdicionales: [],
+            productosAdicionales: (s as any).productosAdicionales || [],
           }));
         this.sesionesActivas.set(sesionesUI);
       },
@@ -263,9 +245,9 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
   iniciarNuevaSesion(): void {
     this.resumeAudioContext();
     if (!this.nuevoProductoId) return;
-    const request: IniciarSesionRequest = { 
-      productoServicioId: this.nuevoProductoId, 
-      minutos: this.nuevoTiempoMinutos 
+    const request: IniciarSesionRequest = {
+      productoServicioId: this.nuevoProductoId,
+      minutos: this.nuevoTiempoMinutos
     };
     this.tiempoService.iniciarSesion(request).subscribe({
       next: (nuevaSesion) => {
@@ -295,92 +277,149 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe((newItem: VentaItem) => {
       if (newItem) {
-        this.sesionesActivas.update(sesiones => sesiones.map(s => {
-          if (s.id === sesionId) {
-            const items = s.productosAdicionales || [];
-            const existingItem = items.find(i => i.productoId === newItem.productoId);
-            if (existingItem) {
-                existingItem.cantidad += newItem.cantidad;
-                existingItem.total = existingItem.cantidad * existingItem.precioUnitario;
-            } else {
-                items.push(newItem);
-            }
-            return { ...s, productosAdicionales: items };
+        // 1. Creamos el DTO con los datos necesarios para el backend.
+        const request: AgregarProductoRequest = {
+          productoId: newItem.productoId,
+          cantidad: newItem.cantidad
+        };
+
+        // 2. Llamamos al servicio con el ID de la sesión y el DTO.
+        this.tiempoService.agregarProductoASesion(sesionId, request).subscribe({
+          next: (productoGuardado) => {
+            // 3. En caso de éxito, actualizamos la UI de forma optimista.
+            this.sesionesActivas.update(sesiones => sesiones.map(s => {
+              if (s.id === sesionId) {
+                const items = [...(s.productosAdicionales || [])];
+                const existingItem = items.find(i => i.productoId === newItem.productoId);
+                if (existingItem) {
+                  existingItem.cantidad += newItem.cantidad;
+                  existingItem.total = existingItem.cantidad * existingItem.precioUnitario;
+                } else {
+                  items.push(newItem);
+                }
+                return { ...s, productosAdicionales: items };
+              }
+              return s;
+            }));
+            this.mostrarNotificacion('Producto añadido correctamente.', 'success');
+          },
+          error: (err) => {
+            console.error('Error al agregar producto:', err);
+            this.mostrarNotificacion('No se pudo añadir el producto.', 'error');
           }
-          return s;
-        }));
+        });
       }
     });
   }
   
-    private resumeAudioContext(): void {
-        if (isPlatformBrowser(this.platformId) && this.audioContext && this.audioContext.state === 'suspended') {
-        this.audioContext.resume();
-        }
+  private resumeAudioContext(): void {
+    if (isPlatformBrowser(this.platformId) && this.audioContext && this.audioContext.state === 'suspended') {
+      this.audioContext.resume();
     }
-  
-    reproducirSonidoAlerta(): void {
-        if (!this.audioContext || this.audioContext.state === 'closed') return;
-        this.resumeAudioContext();
-        const oscillator = this.audioContext.createOscillator();
-        const gainNode = this.audioContext.createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(this.audioContext.destination);
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(440, this.audioContext.currentTime);
-        gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime);
-        oscillator.start();
-        oscillator.stop(this.audioContext.currentTime + 0.5);
-    }
+  }
 
-    iniciarTimer(): void {
-        this.timerSubscription = interval(1000).subscribe(() => {
-        this.sesionesActivas.update(sesiones => 
-            sesiones.map(sesion => this.actualizarEstadoSesion(sesion))
-        );
+  reproducirSonidoAlerta(): void {
+    if (!this.audioContext || this.audioContext.state === 'closed') return;
+    this.resumeAudioContext();
+    const oscillator = this.audioContext.createOscillator();
+    const gainNode = this.audioContext.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(this.audioContext.destination);
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(440, this.audioContext.currentTime);
+    gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime);
+    oscillator.start();
+    oscillator.stop(this.audioContext.currentTime + 0.5);
+  }
+
+  iniciarTimer(): void {
+    this.timerSubscription = interval(1000).subscribe(() => {
+      this.sesionesActivas.update(sesiones => 
+        sesiones.map(sesion => this.actualizarEstadoSesion(sesion))
+      );
+    });
+  }
+
+  actualizarEstadoSesion(sesion: SesionTiempoUI): SesionTiempoUI {
+    if (sesion.estado !== 'ACTIVA') return { ...sesion };
+    const ahora = new Date();
+    const inicio = new Date(sesion.horaInicio);
+    const tiempoTranscurridoSegundos = Math.floor((ahora.getTime() - inicio.getTime()) / 1000);
+    const esContadorAscendente = !sesion.duracionSolicitadaMinutos;
+    let tiempoRestanteSegundos = sesion.tiempoRestanteSegundos;
+
+    if (!esContadorAscendente) {
+      const finEstimado = inicio.getTime() + sesion.duracionSolicitadaMinutos! * 60 * 1000;
+      const restante = Math.floor((finEstimado - ahora.getTime()) / 1000);
+      tiempoRestanteSegundos = restante > 0 ? restante : 0;
+      if (tiempoRestanteSegundos === 0 && sesion.estado === 'ACTIVA') {
+        this.reproducirSonidoAlerta();
+        // Solo cambiamos el estado visualmente, el backend lo controla al cobrar
+      }
+    }
+    const precioPorSegundo = (sesion.precioPorHora || 0) / 3600;
+    const valorTiempo = precioPorSegundo * tiempoTranscurridoSegundos;
+    const valorProductos = sesion.productosAdicionales?.reduce((total, item) => total + item.total, 0) || 0;
+    const valorTotal = valorTiempo + valorProductos;
+    
+    return {
+      ...sesion,
+      tiempoTranscurridoSegundos,
+      esContadorAscendente,
+      tiempoRestanteSegundos,
+      valorTiempo,
+      valorProductos,
+      valorTotal
+    };
+  }
+
+  formatTiempo(segundos: number): string {
+    if (isNaN(segundos) || segundos < 0) segundos = 0;
+    const s = Math.floor(segundos % 60);
+    const m = Math.floor(segundos / 60) % 60;
+    const h = Math.floor(segundos / 3600);
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+
+  formatCurrency(value: number): string {
+    if (isNaN(value)) value = 0;
+    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
+  }
+
+  private mostrarNotificacion(mensaje: string, tipo: 'success' | 'error' = 'success'): void {
+    this.snackBar.open(mensaje, 'Cerrar', {
+      duration: 3000,
+      panelClass: tipo === 'success' ? ['bg-green-500', 'text-white'] : ['bg-red-500', 'text-white']
+    });
+  }
+
+  cancelarSesion(sesion: SesionTiempoUI): void {
+    // Abrimos un diálogo de confirmación para evitar cancelaciones accidentales
+    const dialogRef = this.dialog.open(ConfirmacionDialogComponent, {
+      width: '450px',
+      disableClose: true,
+      panelClass: 'custom-dialog-container',
+      data: {
+        titulo: 'Confirmar Cancelación',
+        mensaje: `¿Está seguro de que desea cancelar la sesión de <strong>${sesion.nombreProducto}</strong>? Esta acción no se puede deshacer y no generará ningún registro.`
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(confirmado => {
+      if (confirmado) {
+        // Si el usuario confirma, llamamos al nuevo método en el servicio
+        this.tiempoService.cancelarSesion(sesion.id!).subscribe({
+          next: () => {
+            // Si el backend confirma, eliminamos la sesión de la vista
+            this.sesionesActivas.update(sesiones => sesiones.filter(s => s.id !== sesion.id));
+            this.mostrarNotificacion('Sesión cancelada correctamente.');
+          },
+          error: (err) => {
+            console.error('Error al cancelar la sesión:', err);
+            this.mostrarNotificacion(err.error?.message || 'Error al cancelar la sesión', 'error');
+          }
         });
-    }
-
-    actualizarEstadoSesion(sesion: SesionTiempoUI): SesionTiempoUI {
-        if (sesion.estado !== 'ACTIVA') return sesion;
-        const ahora = new Date();
-        const inicio = new Date(sesion.horaInicio);
-        sesion.tiempoTranscurridoSegundos = Math.floor((ahora.getTime() - inicio.getTime()) / 1000);
-        sesion.esContadorAscendente = !sesion.duracionSolicitadaMinutos;
-
-        if (!sesion.esContadorAscendente) {
-        const finEstimado = inicio.getTime() + sesion.duracionSolicitadaMinutos! * 60 * 1000;
-        const restante = Math.floor((finEstimado - ahora.getTime()) / 1000);
-        sesion.tiempoRestanteSegundos = restante > 0 ? restante : 0;
-        if (sesion.tiempoRestanteSegundos === 0) {
-            this.reproducirSonidoAlerta();
-            sesion.estado = 'FINALIZADA';
-        }
-        }
-        const precioPorSegundo = (sesion.precioPorHora || 0) / 3600;
-        sesion.valorTiempo = precioPorSegundo * (sesion.tiempoTranscurridoSegundos || 0);
-        sesion.valorProductos = sesion.productosAdicionales?.reduce((total, item) => total + item.total, 0) || 0;
-        sesion.valorTotal = sesion.valorTiempo + sesion.valorProductos;
-        return {...sesion};
-    }
-
-    formatTiempo(segundos: number): string {
-        if (isNaN(segundos) || segundos < 0) segundos = 0;
-        const s = Math.floor(segundos % 60);
-        const m = Math.floor(segundos / 60) % 60;
-        const h = Math.floor(segundos / 3600);
-        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-    }
-  
-    formatCurrency(value: number): string {
-        if (isNaN(value)) value = 0;
-        return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
-    }
-
-    private mostrarNotificacion(mensaje: string, tipo: 'success' | 'error' = 'success'): void {
-        this.snackBar.open(mensaje, 'Cerrar', {
-        duration: 3000,
-        panelClass: tipo === 'success' ? ['bg-green-500', 'text-white'] : ['bg-red-500', 'text-white']
-        });
-    }
+      }
+    });
+  }
 }

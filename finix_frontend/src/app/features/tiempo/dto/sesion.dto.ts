@@ -10,3 +10,8 @@ export interface IniciarSesionRequest {
 export interface AdicionarTiempoRequest {
     minutosAdicionales: number;
 }
+
+export interface AgregarProductoRequest {
+  productoId: number;
+  cantidad: number;
+}

@@ -1,11 +1,14 @@
 package com.cristiancamilo.finix.service;
 
+import com.cristiancamilo.finix.dto.AgregarProductoRequest;
+import com.cristiancamilo.finix.dto.SesionTiempoDTO;
+import com.cristiancamilo.finix.dto.VentaItemDTO;
 import com.cristiancamilo.finix.model.SesionTiempo;
 import java.util.List;
 import java.util.Optional;
 
 public interface GestionTiempoService {
-    List<SesionTiempo> getSesionesActivas();
+    List<SesionTiempoDTO> getSesionesActivas();
     Optional<SesionTiempo> findById(Long id);
     // Lógica para iniciar una nueva sesión de tiempo
     SesionTiempo iniciarSesion(Long productoServicioId, Long clienteId, Integer minutos, String puesto);
@@ -13,4 +16,7 @@ public interface GestionTiempoService {
     SesionTiempo finalizarSesion(Long sesionId);
     // Lógica para añadir tiempo extra a una sesión existente
     SesionTiempo adicionarTiempo(Long sesionId, int minutosAdicionales);
+
+    VentaItemDTO agregarProductoASesion(Long sesionId, AgregarProductoRequest request);
+    void cancelarSesion(Long sesionId);
 }

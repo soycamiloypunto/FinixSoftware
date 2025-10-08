@@ -84,12 +84,20 @@
                     </mat-card-content>
                     
                     <mat-card-actions class="p-2 border-t flex justify-around">
+                        <app-custom-button
+                            variant="stroked"
+                            color="warn"
+                            (buttonClick)="cancelarSesion(sesion)"
+                            [disabled]="!!(sesion.productosAdicionales && sesion.productosAdicionales.length > 0)"
+                            matTooltip="Cancela la sesión SOLO si no tiene productos vendidos.">
+                            <mat-icon>cancel</mat-icon> 
+                        </app-custom-button>
                         <app-custom-button 
                             variant="stroked" 
                             color="accent" 
                             (buttonClick)="abrirDialogoVender(sesion.id!)" 
                             matTooltip="Vender producto a esta sesión">
-                            <mat-icon>add_shopping_cart</mat-icon> Vender
+                            <mat-icon>add_shopping_cart</mat-icon> 
                         </app-custom-button>
                         
                         <app-custom-button 

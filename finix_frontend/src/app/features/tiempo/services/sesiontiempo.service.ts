@@ -33,4 +33,5 @@ export class GestionTiempoService {
   // --- MÉTODO ELIMINADO ---
   // Se elimina el método 'venderProducto' porque el endpoint no existe actualmente 
   // en tu GestionTiempoController. Se puede añadir en el futuro cuando el backend lo soporte.
+  
 }

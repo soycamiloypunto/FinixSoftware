@@ -9,6 +9,8 @@ import com.cristiancamilo.finix.service.GestionTiempoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -66,7 +68,7 @@ public class GestionTiempoServiceImpl implements GestionTiempoService {
         SesionTiempo sesion = sesionTiempoRepository.findById(sesionId)
                 .orElseThrow(() -> new RuntimeException("Sesión no encontrada"));
         sesion.setEstado(EstadoSesion.FINALIZADA);
-        sesion.setHoraFin(LocalDateTime.now());
+        sesion.setHoraFin(ZonedDateTime.now(ZoneId.of("America/Bogota")));
 
         return sesionTiempoRepository.save(sesion);
     }

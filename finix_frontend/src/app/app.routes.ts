@@ -45,7 +45,8 @@ export const routes: Routes = [
   },
   // Ruta "catch-all" para cualquier URL que no coincida, redirige a la raíz.
   {
-    path: '**',
-    redirectTo: ''
+    path: '', 
+    redirectTo: 'tiempos', 
+    pathMatch: 'full' 
   }
 ];

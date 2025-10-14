@@ -5,10 +5,12 @@ package com.cristiancamilo.finix.controller;
 import com.cristiancamilo.finix.model.Venta;
 import com.cristiancamilo.finix.service.VentaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @RestController
@@ -37,5 +39,12 @@ public class VentaController {
             // Manejo básico de errores
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @GetMapping("/by-date")
+    public List<Venta> getVentasByDateRange(
+            @RequestParam("fechaInicio") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime fechaInicio,
+            @RequestParam("fechaFin") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime fechaFin) {
+        return ventaService.findByFechaBetween(fechaInicio, fechaFin);
     }
 }

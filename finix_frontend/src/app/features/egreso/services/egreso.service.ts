@@ -1,7 +1,7 @@
 // archivo: app/features/egreso/services/egreso.service.ts
 
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { EgresoModel } from '../models/egreso.model';
 
@@ -30,5 +30,15 @@ export class EgresoService {
   
   deleteEgreso(id: number): Observable<void> {
       return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  findByFechaBetween(fechaInicio: Date, fechaFin: Date): Observable<EgresoModel[]> {
+    const params = new HttpParams()
+      .set('fechaInicio', fechaInicio.toISOString())
+      .set('fechaFin', fechaFin.toISOString());
+
+     const url = `${this.apiUrl}/by-date`; 
+
+    return this.http.get<EgresoModel[]>(url, { params });
   }
 }

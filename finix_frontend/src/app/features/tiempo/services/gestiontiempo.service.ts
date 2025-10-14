@@ -56,4 +56,8 @@ export class GestionTiempoService {
     // Usaremos un POST para mantener consistencia con finalizarSesion
     return this.http.post<void>(`${this.apiUrl}/${sesionId}/cancelar`, {});
     }
+
+     getSesionesFinalizadas(): Observable<SesionTiempo[]> {
+    return this.http.get<SesionTiempo[]>(`${this.apiUrl}/finalizadas`);
+  }
 }

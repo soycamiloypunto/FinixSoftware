@@ -35,6 +35,10 @@ export const routes: Routes = [
         path: 'proveedores', 
         loadComponent: () => import('../app/features/proveedor/proveedor/proveedor.component').then(m => m.ProveedorComponent) 
       },
+      {
+        path: 'reporte-diario',
+        loadComponent: () => import('../app/features/reportediario/reporte.diario.component/reporte.diario.component').then(m => m.ReporteDiarioComponent)
+      },
       // Redirección por defecto a 'tiempos' si no se especifica una ruta.
       { 
         path: '', 

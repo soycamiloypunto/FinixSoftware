@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Entity
@@ -16,7 +18,7 @@ public class Venta {
     private Long id;
 
     @Column(nullable = false)
-    private LocalDateTime fecha = LocalDateTime.now();
+    private ZonedDateTime fecha = ZonedDateTime.now(ZoneId.of("America/Bogota"));
 
     @JsonManagedReference
     @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true)

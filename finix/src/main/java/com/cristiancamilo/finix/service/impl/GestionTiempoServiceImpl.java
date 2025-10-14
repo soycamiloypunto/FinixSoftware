@@ -4,21 +4,22 @@ import com.cristiancamilo.finix.dto.AgregarProductoRequest;
 import com.cristiancamilo.finix.dto.ProductoDTO;
 import com.cristiancamilo.finix.dto.SesionTiempoDTO;
 import com.cristiancamilo.finix.dto.VentaItemDTO;
-import com.cristiancamilo.finix.model.EstadoSesion;
-import com.cristiancamilo.finix.model.Producto;
-import com.cristiancamilo.finix.model.SesionProductoAdicional;
-import com.cristiancamilo.finix.model.SesionTiempo;
+import com.cristiancamilo.finix.model.*;
 import com.cristiancamilo.finix.repository.ProductoRepository;
 import com.cristiancamilo.finix.repository.SesionProductoAdicionalRepository;
 import com.cristiancamilo.finix.repository.SesionTiempoRepository;
+import com.cristiancamilo.finix.repository.VentaRepository;
 import com.cristiancamilo.finix.service.GestionTiempoService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -35,6 +36,10 @@ public class GestionTiempoServiceImpl implements GestionTiempoService {
 
     @Autowired
     private ProductoRepository productoRepository; // Necesario para validar el servicio
+
+    @Autowired
+    private VentaRepository ventaRepository; // Necesario para validar el servicio
+
 
     @Override
     public List<SesionTiempoDTO> getSesionesActivas() {
@@ -113,19 +118,75 @@ public class GestionTiempoServiceImpl implements GestionTiempoService {
     }
 
     @Override
+    @Transactional // <-- ¡MUY IMPORTANTE! Asegura que toda la operación sea atómica.
     public SesionTiempo finalizarSesion(Long sesionId) {
-        // Lógica de negocio:
-        // 1. Encontrar la sesión por su ID.
-        // 2. Cambiar su estado a FINALIZADA.
-        // 3. Establecer la hora de fin.
-        // 4. Aquí se podría calcular el costo total y prepararlo para la facturación.
-        // 5. Guardar los cambios.
+        // 1. Encontrar la sesión
         SesionTiempo sesion = sesionTiempoRepository.findById(sesionId)
                 .orElseThrow(() -> new RuntimeException("Sesión no encontrada"));
+
+        if (sesion.getEstado() != EstadoSesion.ACTIVA) {
+            throw new IllegalStateException("La sesión ya ha sido finalizada o cancelada.");
+        }
+
+        // 2. Establecer la hora de fin y cambiar estado
         sesion.setEstado(EstadoSesion.FINALIZADA);
         sesion.setHoraFin(ZonedDateTime.now(ZoneId.of("America/Bogota")));
 
+        // 3. Calcular el costo del tiempo
+        BigDecimal precioPorSegundo = sesion.getProductoServicio().getPrecioVenta().divide(BigDecimal.valueOf(3600), 10, BigDecimal.ROUND_HALF_UP);
+        long segundosTranscurridos = Duration.between(sesion.getHoraInicio(), sesion.getHoraFin()).getSeconds();
+        BigDecimal totalTiempo = precioPorSegundo.multiply(BigDecimal.valueOf(segundosTranscurridos));
+
+        // 4. Crear la Venta principal
+        Venta nuevaVenta = new Venta();
+        nuevaVenta.setCliente(sesion.getCliente());
+        nuevaVenta.setDetalles(new ArrayList<>());
+
+        // 5. Crear el VentaDetalle para el servicio de tiempo
+        VentaDetalle detalleTiempo = new VentaDetalle();
+        detalleTiempo.setVenta(nuevaVenta);
+        detalleTiempo.setProducto(sesion.getProductoServicio());
+        detalleTiempo.setCantidad(1); // El tiempo cuenta como 1 unidad de servicio
+        detalleTiempo.setPrecioUnitario(totalTiempo); // El precio es el total calculado
+        detalleTiempo.setSubtotal(totalTiempo);
+        nuevaVenta.getDetalles().add(detalleTiempo);
+
+        // 6. Crear VentaDetalle para cada producto adicional
+        BigDecimal totalProductosAdicionales = BigDecimal.ZERO;
+        for (SesionProductoAdicional itemAdicional : sesion.getProductosAdicionales()) {
+            VentaDetalle detalleProducto = new VentaDetalle();
+            detalleProducto.setVenta(nuevaVenta);
+            detalleProducto.setProducto(itemAdicional.getProducto());
+            detalleProducto.setCantidad(itemAdicional.getCantidad());
+            detalleProducto.setPrecioUnitario(itemAdicional.getPrecioUnitarioVenta());
+            detalleProducto.setSubtotal(itemAdicional.getTotalVenta());
+            nuevaVenta.getDetalles().add(detalleProducto);
+            totalProductosAdicionales = totalProductosAdicionales.add(itemAdicional.getTotalVenta());
+        }
+
+        // 7. Establecer el total de la venta y guardarla
+        BigDecimal totalFinalVenta = totalTiempo.add(totalProductosAdicionales);
+        nuevaVenta.setTotalVenta(totalFinalVenta);
+        // Aquí podrías establecer montoPagado y cambio si los recibieras del frontend
+        nuevaVenta.setMontoPagado(totalFinalVenta);
+        nuevaVenta.setCambio(BigDecimal.ZERO);
+
+        Venta ventaGuardada = ventaRepository.save(nuevaVenta);
+
+        // 8. Asociar la venta guardada con la sesión y guardar la sesión
+        sesion.setVenta(ventaGuardada);
         return sesionTiempoRepository.save(sesion);
+    }
+
+    // --- NUEVO MÉTODO PARA OBTENER EL HISTORIAL ---
+    @Override
+    public List<SesionTiempoDTO> getSesionesFinalizadas() {
+        List<SesionTiempo> sesionesFinalizadas = sesionTiempoRepository
+                .findTop10ByEstadoOrderByHoraFinDesc(EstadoSesion.FINALIZADA);
+
+        return sesionesFinalizadas.stream()
+                .map(this::convertirASesionTiempoDTO)
+                .collect(Collectors.toList());
     }
 
     @Override

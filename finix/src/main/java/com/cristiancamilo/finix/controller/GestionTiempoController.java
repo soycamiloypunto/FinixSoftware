@@ -83,4 +83,10 @@ public class GestionTiempoController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    // --- NUEVO ENDPOINT PARA EL HISTORIAL ---
+    @GetMapping("/finalizadas")
+    public ResponseEntity<List<SesionTiempoDTO>> getSesionesFinalizadas() {
+        return ResponseEntity.ok(gestionTiempoService.getSesionesFinalizadas());
+    }
 }

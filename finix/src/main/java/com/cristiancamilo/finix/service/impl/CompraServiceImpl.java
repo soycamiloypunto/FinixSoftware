@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -59,5 +60,10 @@ public class CompraServiceImpl implements CompraService {
         // Nota: Eliminar una compra no revierte el stock.
         // Si se necesitara esa lógica, se debería implementar aquí.
         compraRepository.deleteById(id);
+    }
+
+    @Override
+    public List<Compra> findByFechaBetween(ZonedDateTime fechaInicio, ZonedDateTime fechaFin) {
+        return compraRepository.findByFechaBetween(fechaInicio, fechaFin);
     }
 }

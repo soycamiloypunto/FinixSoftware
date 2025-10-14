@@ -4,9 +4,11 @@ package com.cristiancamilo.finix.controller;
 import com.cristiancamilo.finix.model.Egreso;
 import com.cristiancamilo.finix.service.EgresoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @RestController
@@ -60,5 +62,12 @@ public class EgresoController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @GetMapping("/by-date")
+    public List<Egreso> getEgresosByDateRange(
+            @RequestParam("fechaInicio") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime fechaInicio,
+            @RequestParam("fechaFin") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime fechaFin) {
+        return egresoService.findByFechaBetween(fechaInicio, fechaFin);
     }
 }

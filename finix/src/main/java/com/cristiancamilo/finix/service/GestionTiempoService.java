@@ -19,4 +19,6 @@ public interface GestionTiempoService {
 
     VentaItemDTO agregarProductoASesion(Long sesionId, AgregarProductoRequest request);
     void cancelarSesion(Long sesionId);
+    // --- LÍNEA A AÑADIR ---
+    List<SesionTiempoDTO> getSesionesFinalizadas();
 }

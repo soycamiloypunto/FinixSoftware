@@ -3,6 +3,7 @@ package com.cristiancamilo.finix.service;
 
 import com.cristiancamilo.finix.model.Egreso;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,4 +16,7 @@ public interface EgresoService {
     Egreso save(Egreso egreso);
 
     void deleteById(Long id);
+
+    List<Egreso> findByFechaBetween(ZonedDateTime fechaInicio, ZonedDateTime fechaFin);
+
 }

@@ -4,9 +4,11 @@ package com.cristiancamilo.finix.controller;
 import com.cristiancamilo.finix.model.Compra;
 import com.cristiancamilo.finix.service.CompraService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @RestController
@@ -48,5 +50,12 @@ public class CompraController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @GetMapping("/by-date")
+    public List<Compra> getComprasByDateRange(
+            @RequestParam("fechaInicio") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime fechaInicio,
+            @RequestParam("fechaFin") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime fechaFin) {
+        return compraService.findByFechaBetween(fechaInicio, fechaFin);
     }
 }

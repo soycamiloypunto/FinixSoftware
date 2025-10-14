@@ -3,6 +3,7 @@ package com.cristiancamilo.finix.service;
 
 import com.cristiancamilo.finix.model.Compra;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,4 +21,7 @@ public interface CompraService {
     Compra crearCompra(Compra compra);
 
     void deleteById(Long id);
+
+    List<Compra> findByFechaBetween(ZonedDateTime fechaInicio, ZonedDateTime fechaFin);
+
 }

@@ -1,7 +1,7 @@
 // --- archivo: venta.services.ts ---
 
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { VentaModel } from '../models/venta.model';
 
@@ -26,4 +26,16 @@ export class VentaService {
       map(ventas => ventas.slice(0, limite)) // Tomar solo las últimas 'limite' ventas
     );
   }
+
+  findByFechaBetween(fechaInicio: Date, fechaFin: Date): Observable<VentaModel[]> {
+    // Creamos los parámetros para la petición HTTP de forma segura
+    const params = new HttpParams()
+      .set('fechaInicio', fechaInicio.toISOString()) // Convertimos la fecha a string ISO
+      .set('fechaFin', fechaFin.toISOString());   // Ejemplo: "2025-10-14T05:00:00.000Z"
+
+     const url = `${this.apiUrl}/by-date`; 
+
+    return this.http.get<VentaModel[]>(url, { params });
+  }
+
 }

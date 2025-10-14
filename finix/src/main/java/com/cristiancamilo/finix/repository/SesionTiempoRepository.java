@@ -11,4 +11,6 @@ import java.util.List;
 public interface SesionTiempoRepository extends JpaRepository<SesionTiempo, Long> {
     // Método para encontrar todas las sesiones que están activas
     List<SesionTiempo> findByEstado(EstadoSesion estado);
+    List<SesionTiempo> findTop10ByEstadoOrderByHoraFinDesc(EstadoSesion estado);
+
 }

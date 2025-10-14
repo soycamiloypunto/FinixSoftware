@@ -7,6 +7,7 @@ import com.cristiancamilo.finix.service.EgresoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,5 +35,10 @@ public class EgresoServiceImpl implements EgresoService {
     @Override
     public void deleteById(Long id) {
         egresoRepository.deleteById(id);
+    }
+
+    @Override
+    public List<Egreso> findByFechaBetween(ZonedDateTime fechaInicio, ZonedDateTime fechaFin) {
+        return egresoRepository.findByFechaBetween(fechaInicio, fechaFin);
     }
 }

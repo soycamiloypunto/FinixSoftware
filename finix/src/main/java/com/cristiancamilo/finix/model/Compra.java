@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Entity
@@ -15,7 +17,8 @@ public class Compra {
     private Long id;
 
     @Column(nullable = false)
-    private LocalDateTime fecha = LocalDateTime.now();
+    private ZonedDateTime fecha = ZonedDateTime.now(ZoneId.of("America/Bogota"));
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "proveedor_id", nullable = false)

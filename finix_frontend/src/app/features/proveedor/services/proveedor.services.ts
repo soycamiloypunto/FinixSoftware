@@ -2,13 +2,15 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ProveedorModel } from '../models/proveedor.model';
+import { environment } from '../../../../enviroments/environment.lan';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProveedorService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/proveedores';
+  private apiUrl = `${environment.apiUrl}/proveedores`;
+  
 
   getAll(): Observable<ProveedorModel[]> {
     return this.http.get<ProveedorModel[]>(this.apiUrl);

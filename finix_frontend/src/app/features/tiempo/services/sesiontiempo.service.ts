@@ -5,13 +5,15 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { SesionTiempo } from '../models/sesiontiempo.model'; // Importamos el modelo corregido
 import { AdicionarTiempoRequest, IniciarSesionRequest } from '../dto/sesion.dto'; // Importamos los DTOs
+import { environment } from '../../../../enviroments/environment.lan';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GestionTiempoService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/sesiones';
+        private apiUrl = `${environment.apiUrl}/sesiones`;
+
 
   getSesionesActivas(): Observable<SesionTiempo[]> {
     return this.http.get<SesionTiempo[]>(`${this.apiUrl}/activas`);

@@ -12,6 +12,7 @@ import {
   IniciarSesionRequest,
   AgregarProductoRequest // <-- Importamos el nuevo DTO
 } from '../dto/sesion.dto';
+import { environment } from '../../../../enviroments/environment.lan';
 
 @Injectable({
   providedIn: 'root'
@@ -19,7 +20,8 @@ import {
 export class GestionTiempoService {
   private http = inject(HttpClient);
   // Usamos una URL base para que sea más fácil de cambiar en el futuro.
-  private apiUrl = 'http://localhost:8080/api/sesiones';
+      private apiUrl = `${environment.apiUrl}/sesiones`;
+
 
   getSesionesActivas(): Observable<SesionTiempo[]> {
     return this.http.get<SesionTiempo[]>(`${this.apiUrl}/activas`);

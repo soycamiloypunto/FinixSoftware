@@ -4,13 +4,15 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { EgresoModel } from '../models/egreso.model';
+import { environment } from '../../../../enviroments/environment.lan';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EgresoService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/egresos';
+  private apiUrl = `${environment.apiUrl}/egresos`;
+
 
   getEgresos(): Observable<EgresoModel[]> {
     return this.http.get<EgresoModel[]>(this.apiUrl);

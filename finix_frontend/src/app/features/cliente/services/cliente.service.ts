@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ClienteModel } from '../models/cliente.model';
+import { environment } from '../../../../enviroments/environment.lan';
 
 @Injectable({
   // Proveer el servicio directamente aquí es una alternativa a proveerlo en el componente.
@@ -11,7 +12,7 @@ import { ClienteModel } from '../models/cliente.model';
 })
 export class ClienteService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/clientes';
+  private apiUrl = `${environment.apiUrl}/clientes`;
 
   getAll(): Observable<ClienteModel[]> {
     return this.http.get<ClienteModel[]>(this.apiUrl);

@@ -2,13 +2,15 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ProductoModel } from '../models/producto.model';
+import { environment } from '../../../../enviroments/environment.lan';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductoService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/productos';
+        private apiUrl = `${environment.apiUrl}/productos`;
+
 
   // Este método trae TODOS los productos.
   getAll(): Observable<ProductoModel[]> {

@@ -4,13 +4,15 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { VentaModel } from '../models/venta.model';
+import { environment } from '../../../../enviroments/environment.lan';
 
 @Injectable({
   providedIn: 'root'
 })
 export class VentaService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/api/ventas';
+        private apiUrl = `${environment.apiUrl}/ventas`;
+
 
   // Cambiado para coincidir con el backend
   registrarVenta(venta: VentaModel): Observable<VentaModel> {

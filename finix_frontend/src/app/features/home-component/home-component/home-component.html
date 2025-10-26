@@ -1,0 +1,18 @@
+<!-- Contenedor principal para la página de inicio -->
+<div class="home-container">
+  <!-- Capa de contenido para asegurar que el texto sea legible sobre el fondo -->
+  <div class="content-overlay">
+    <h1 class="text-6xl font-extrabold text-white mb-4 drop-shadow-lg">
+      ¡Bienvenido a FINIX!
+    </h1>
+    <p class="text-xl text-gray-200 mb-8 drop-shadow-md max-w-lg text-center">
+      Tu sistema de gestión empresarial listo para optimizar tus procesos y tiempos.
+    </p>
+    <button 
+      (click)="navigateToDefault()" 
+      class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-6 rounded-xl transition duration-300 shadow-xl transform hover:scale-105"
+    >
+      Ir al Dashboard
+    </button>
+  </div>
+</div>

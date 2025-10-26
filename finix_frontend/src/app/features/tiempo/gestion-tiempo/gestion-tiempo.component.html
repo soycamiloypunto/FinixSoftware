@@ -61,6 +61,15 @@
 
                         <div class="border-t pt-3">
                             <h3 class="text-sm font-semibold text-gray-600 mb-2">Consumos Adicionales:</h3>
+                            
+                            <!-- CHECKBOX DE CONTROL ADICIONAL (NUEVA FUNCIÓN) -->
+                            <mat-checkbox 
+                                class="mb-2"
+                                color="primary"
+                                [ngModel]="sesion.aplicarControlAdicional" (change)="onToggleControlAdicional(sesion, $event.checked)"> Agregar Control (+$1000/hr)
+                            </mat-checkbox>
+                            <!-- FIN CHECKBOX -->
+                            
                             @if (!sesion.productosAdicionales?.length) {
                                 <p class="text-xs text-gray-400">Ninguno</p>
                             } @else {
@@ -79,6 +88,16 @@
                         <div class="border-t pt-3 space-y-2 text-sm">
                              <div class="flex justify-between"><span>Consumo Tiempo:</span><span class="font-semibold">{{ formatCurrency(sesion.valorTiempo || 0) }}</span></div>
                              <div class="flex justify-between"><span>Consumo Productos:</span><span class="font-semibold">{{ formatCurrency(sesion.valorProductos || 0) }}</span></div>
+                             
+                             <!-- LÍNEA DE CARGO ADICIONAL (CONTROL) -->
+                             @if (sesion.valorControlAdicional) {
+                                 <div class="flex justify-between text-red-600 font-medium">
+                                     <span>Consumo Adicional (Control):</span>
+                                     <span>{{ formatCurrency(sesion.valorControlAdicional || 0) }}</span>
+                                 </div>
+                             }
+                             <!-- FIN LÍNEA DE CARGO ADICIONAL -->
+                             
                              <div class="flex justify-between font-bold text-lg border-t pt-1 mt-1"><span>TOTAL A PAGAR:</span><span>{{ formatCurrency(sesion.valorTotal || 0) }}</span></div>
                         </div>
                     </mat-card-content>

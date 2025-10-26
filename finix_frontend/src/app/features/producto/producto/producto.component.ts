@@ -27,6 +27,14 @@ import { CustomInputComponent } from '../../../shared/components/custom-input/cu
 import { CustomButtonComponent } from '../../../shared/components/custom-button/custom-button';
 import { DialogFrameComponent } from '../../../shared/components/dialog-frame/dialog-frame';
 
+// --- Importaciones para MatTableDataSource y Paginación ---
+import { MatTableDataSource } from '@angular/material/table'; 
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator'; // Importa MatPaginator y su módulo
+import { ViewChild, AfterViewInit } from '@angular/core'; // Para inyectar el paginador
+
+// --- Modulo MatCard para el Filtro ---
+import { MatCardModule } from '@angular/material/card';
+
 // --- Componente de Diálogo (Hijo) ---
 @Component({
   selector: 'dialog-producto',
@@ -184,7 +192,12 @@ export class ProductoDialogComponent implements OnInit {
   standalone: true,
   imports: [
     CommonModule, MatTableModule, MatToolbarModule, MatIconModule, MatDialogModule, 
-    MatSnackBarModule, MatTooltipModule, CustomButtonComponent // <--- AÑADIDO
+    MatSnackBarModule, MatTooltipModule, CustomButtonComponent,
+    // --- NUEVOS MÓDULOS PARA FILTRO Y PAGINACIÓN ---
+    MatPaginatorModule, 
+    MatFormFieldModule, // Necesario para el input de filtro
+    MatInputModule,     // Necesario para el input de filtro
+    MatCardModule
   ],
   templateUrl: './producto.component.html',
   styleUrls: ['./producto.component.css'],
@@ -195,15 +208,25 @@ export class ProductoComponent implements OnInit {
   private proveedorService = inject(ProveedorService);
   private snackBar = inject(MatSnackBar);
   public dialog = inject(MatDialog);
-
-  public productos = signal<ProductoModel[]>([]);
-  public proveedores: ProveedorModel[] = []; 
-  public isLoading = signal(true); 
   
-  displayedColumns: string[] = ['nombre', 'precioVenta','precioCompra', 'stock', 'proveedor', 'acciones'];
+  // Referencia al componente mat-paginator en el HTML
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+
+  public dataSource: MatTableDataSource<ProductoModel> = new MatTableDataSource<ProductoModel>([]);
+  public proveedores: ProveedorModel[] = []; 
+  public isLoading = signal(true);
+  
+displayedColumns: string[] = ['nombre', 'precioVenta','precioCompra', 'stock', 'proveedor', 'acciones'];
 
   ngOnInit(): void {
     this.cargarDatos();
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+    
+    // Opcional: Configurar la función de filtrado personalizado
+    this.dataSource.filterPredicate = this.customFilterPredicate;
   }
 
   cargarDatos(): void {
@@ -216,10 +239,34 @@ export class ProductoComponent implements OnInit {
     ).subscribe({
       next: (resultado) => {
         this.proveedores = resultado.proveedores; 
-        this.productos.set(resultado.productos);
+        
+        // Asignar los productos al dataSource y actualizar el signal (solo para la referencia)
+        this.dataSource.data = resultado.productos;
+        
+        // Si tienes código que usa el signal 'productos', debes actualizarlo:
+        // this.productos.set(resultado.productos); // Se puede eliminar si no se usa
       },
       error: () => this.mostrarNotificacion('Error al cargar los datos iniciales', 'error')
     });
+  }
+
+  // --- LÓGICA DE FILTRADO ---
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    // Se aplica el filtro a los datos. El paginador y la tabla se actualizan solos.
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+
+    // Resetear el paginador a la primera página después de filtrar
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
+  }
+
+  // Función de Predicado Personalizado para buscar en propiedades anidadas (Proveedor)
+  // y en todas las columnas relevantes (Nombre, Precio, Stock)
+  customFilterPredicate(data: ProductoModel, filter: string): boolean {
+    const dataStr = (data.nombre + data.descripcion + data.precioVenta + data.stock + (data.proveedor?.nombre || '')).toLowerCase();
+    return dataStr.indexOf(filter) !== -1;
   }
 
   abrirDialogoProducto(producto?: ProductoModel): void {

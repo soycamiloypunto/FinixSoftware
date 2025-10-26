@@ -16,6 +16,7 @@ import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/ma
 import { MatFormFieldModule, MatError } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTableModule } from '@angular/material/table';
+import { MatCheckboxModule } from '@angular/material/checkbox'; // Añadido para el nuevo control
 
 // --- COMPONENTES GENÉRICOS ---
 import { CustomInputComponent } from '../../../shared/components/custom-input/custom-input';
@@ -30,7 +31,7 @@ import { ProductoService } from '../../producto/services/producto.services';
 import { ProductoModel } from '../../producto/models/producto.model';
 import { VentaItem } from '../../venta/models/venta.model';
 
-// --- Modelo para la UI ---
+// --- Modelo para la UI (ACTUALIZADA) ---
 export interface SesionTiempoUI extends SesionTiempoModel {
   nombreProducto?: string;
   precioPorHora?: number;
@@ -40,10 +41,14 @@ export interface SesionTiempoUI extends SesionTiempoModel {
   valorTiempo?: number;
   productosAdicionales?: VentaItem[];
   valorProductos?: number;
+  
+  aplicarControlAdicional?: boolean; // Estado del checkbox
+  valorControlAdicional?: number;   // Valor calculado del cargo adicional
+  
   valorTotal?: number;
 }
 
-// --- DIÁLOGO DE CONFIRMACIÓN REUTILIZABLE (VERSIÓN COMPLETA RESTAURADA) ---
+// --- DIÁLOGO DE CONFIRMACIÓN REUTILIZABLE ---
 @Component({
   selector: 'dialog-confirmacion-tiempo',
   template: `
@@ -67,7 +72,7 @@ export class ConfirmacionDialogComponent {
 }
 
 
-// --- COMPONENTE DE DIÁLOGO PARA VENDER PRODUCTOS (VERSIÓN COMPLETA RESTAURADA) ---
+// --- COMPONENTE DE DIÁLOGO PARA VENDER PRODUCTOS ---
 @Component({
   selector: 'dialog-vender-producto',
   template: `
@@ -129,7 +134,24 @@ export class VenderProductoDialogComponent implements OnInit {
     const filterValue = nombre.toLowerCase();
     return this.data.productos.filter(p => p.nombre.toLowerCase().includes(filterValue));
   }
-  displayProducto(producto: ProductoModel): string { return producto?.nombre || ''; }
+  displayProducto(producto: ProductoModel): string {
+    if (!producto) return '';
+    
+    // Función de formato de moneda (usamos la misma lógica que el componente principal)
+    const formatCurrency = (value: number): string => { 
+        if (isNaN(value)) value = 0; 
+        return new Intl.NumberFormat('es-CO', { 
+            style: 'currency', 
+            currency: 'COP', 
+            minimumFractionDigits: 0 
+        }).format(value); 
+    };
+
+    // Concatenamos el nombre y el precio de venta
+    const precioVentaFormateado = formatCurrency(producto.precioVenta || 0);
+    return `${producto.nombre} (${precioVentaFormateado})`;
+  }
+  
   onProductoSelected(event: MatAutocompleteSelectedEvent) {
     this.selectedProduct = event.option.value;
     this.form.patchValue({ productoId: this.selectedProduct?.id });
@@ -150,14 +172,15 @@ export class VenderProductoDialogComponent implements OnInit {
 }
 
 
-// --- COMPONENTE PRINCIPAL DE GESTIÓN DE TIEMPO (CON LA LÓGICA DEL HISTORIAL) ---
+// --- COMPONENTE PRINCIPAL DE GESTIÓN DE TIEMPO ---
 @Component({
   selector: 'app-gestion-tiempo',
   standalone: true,
   imports: [
     CommonModule, FormsModule, MatCardModule, MatIconModule, MatSnackBarModule,
     MatSelectModule, MatGridListModule, MatTooltipModule, MatDialogModule, MatProgressSpinnerModule,
-    MatFormFieldModule, CustomInputComponent, CustomButtonComponent, MatTableModule
+    MatFormFieldModule, CustomInputComponent, CustomButtonComponent, MatTableModule,
+    MatCheckboxModule // Importado para usar el checkbox
   ],
   templateUrl: './gestion-tiempo.component.html',
   styleUrls: ['./gestion-tiempo.component.css'],
@@ -211,7 +234,11 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
         this.productosParaVenta.set(productos.filter(p => !p.esServicioDeTiempo));
         
         const sesionesActivasUI = this.mapToSesionUI(sesionesActivas);
-        this.sesionesActivas.set(sesionesActivasUI);
+        this.sesionesActivas.set(sesionesActivasUI.map(s => ({ 
+            ...s, 
+            aplicarControlAdicional: false, // Inicializamos la nueva propiedad en false
+            valorControlAdicional: 0 
+        })));
 
         const sesionesFinalizadasUI = this.mapToSesionUI(sesionesFinalizadas);
         this.sesionesFinalizadas.set(sesionesFinalizadasUI);
@@ -220,8 +247,17 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
     });
   }
   
+  // FUNCIÓN CORREGIDA para asegurar el uso del total actualizado
   cobrarSesion(sesion: SesionTiempoUI): void {
-    const totalFormateado = this.formatCurrency(sesion.valorTotal || 0);
+    // Busca la sesión más reciente del signal (que ya fue actualizada por el timer)
+    const sesionActualizada = this.sesionesActivas().find(s => s.id === sesion.id);
+
+    if (!sesionActualizada) {
+      this.mostrarNotificacion('Error: Sesión no encontrada o no activa', 'error');
+      return;
+    }
+
+    const totalFormateado = this.formatCurrency(sesionActualizada.valorTotal || 0);
     const dialogRef = this.dialog.open(ConfirmacionDialogComponent, {
       width: '450px',
       disableClose: true,
@@ -234,9 +270,9 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe(confirmado => {
       if (confirmado) {
-        this.tiempoService.finalizarSesion(sesion.id!).subscribe({
+        this.tiempoService.finalizarSesion(sesionActualizada.id!).subscribe({
           next: () => {
-            this.sesionesActivas.update(sesiones => sesiones.filter(s => s.id !== sesion.id));
+            this.sesionesActivas.update(sesiones => sesiones.filter(s => s.id !== sesionActualizada.id));
             this.cargarHistorial();
             this.mostrarNotificacion(`Cobro finalizado.`);
           },
@@ -270,7 +306,10 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
         const productosAdicionales = (s as any).productosAdicionales || [];
         const valorProductos = productosAdicionales.reduce((total: number, item: VentaItem) => total + (item.total || 0), 0);
         
-        const valorTotal = valorTiempo + valorProductos;
+        // Inicialización para sesiones finalizadas
+        const valorControlAdicional = 0;
+        
+        const valorTotal = valorTiempo + valorProductos + valorControlAdicional;
 
         // Devolvemos el objeto completo con los valores calculados
         return {
@@ -281,6 +320,7 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
           tiempoTranscurridoSegundos: tiempoTranscurridoSegundos,
           valorTiempo: valorTiempo,
           valorProductos: valorProductos,
+          valorControlAdicional: valorControlAdicional,
           valorTotal: valorTotal
         };
       });
@@ -292,7 +332,14 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
     const request: IniciarSesionRequest = { productoServicioId: this.nuevoProductoId, minutos: this.nuevoTiempoMinutos };
     this.tiempoService.iniciarSesion(request).subscribe({
       next: (nuevaSesion) => {
-        const sesionUI: SesionTiempoUI = { ...nuevaSesion, nombreProducto: nuevaSesion.productoServicio.nombre, precioPorHora: nuevaSesion.productoServicio.precioVenta, productosAdicionales: [], };
+        const sesionUI: SesionTiempoUI = { 
+          ...nuevaSesion, 
+          nombreProducto: nuevaSesion.productoServicio.nombre, 
+          precioPorHora: nuevaSesion.productoServicio.precioVenta, 
+          productosAdicionales: [], 
+          aplicarControlAdicional: false, // Inicialización
+          valorControlAdicional: 0      // Inicialización
+        };
         this.sesionesActivas.update(sesiones => [...sesiones, sesionUI]);
         this.mostrarNotificacion('Sesión iniciada correctamente');
         this.nuevoProductoId = undefined;
@@ -332,8 +379,79 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
   }
   private resumeAudioContext(): void { if (isPlatformBrowser(this.platformId) && this.audioContext && this.audioContext.state === 'suspended') { this.audioContext.resume(); } }
   reproducirSonidoAlerta(): void { if (!this.audioContext || this.audioContext.state === 'closed') return; this.resumeAudioContext(); const oscillator = this.audioContext.createOscillator(); const gainNode = this.audioContext.createGain(); oscillator.connect(gainNode); gainNode.connect(this.audioContext.destination); oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(440, this.audioContext.currentTime); gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime); oscillator.start(); oscillator.stop(this.audioContext.currentTime + 0.5); }
-  iniciarTimer(): void { this.timerSubscription = interval(1000).subscribe(() => { this.sesionesActivas.update(sesiones => sesiones.map(sesion => this.actualizarEstadoSesion(sesion)) ); }); }
-  actualizarEstadoSesion(sesion: SesionTiempoUI): SesionTiempoUI { if (sesion.estado !== 'ACTIVA') return { ...sesion }; const ahora = new Date(); const inicio = new Date(sesion.horaInicio); const tiempoTranscurridoSegundos = Math.floor((ahora.getTime() - inicio.getTime()) / 1000); const esContadorAscendente = !sesion.duracionSolicitadaMinutos; let tiempoRestanteSegundos = sesion.tiempoRestanteSegundos; if (!esContadorAscendente) { const finEstimado = inicio.getTime() + sesion.duracionSolicitadaMinutos! * 60 * 1000; const restante = Math.floor((finEstimado - ahora.getTime()) / 1000); tiempoRestanteSegundos = restante > 0 ? restante : 0; if (tiempoRestanteSegundos === 0 && sesion.estado === 'ACTIVA') { this.reproducirSonidoAlerta(); } } const precioPorSegundo = (sesion.precioPorHora || 0) / 3600; const valorTiempo = precioPorSegundo * tiempoTranscurridoSegundos; const valorProductos = sesion.productosAdicionales?.reduce((total, item) => total + item.total, 0) || 0; const valorTotal = valorTiempo + valorProductos; return { ...sesion, tiempoTranscurridoSegundos, esContadorAscendente, tiempoRestanteSegundos, valorTiempo, valorProductos, valorTotal }; }
+  
+  iniciarTimer(): void { 
+    this.timerSubscription = interval(1000).subscribe(() => { 
+      this.sesionesActivas.update(sesiones => sesiones.map(sesion => this.actualizarEstadoSesion(sesion)) ); 
+    }); 
+  }
+
+    actualizarEstadoSesion(sesion: SesionTiempoUI): SesionTiempoUI { 
+    if (sesion.estado !== 'ACTIVA') return { ...sesion }; 
+    
+    const ahora = new Date(); 
+    const inicio = new Date(sesion.horaInicio); 
+    const tiempoTranscurridoSegundos = Math.floor((new Date().getTime() - new Date(sesion.horaInicio).getTime()) / 1000);
+
+    const esContadorAscendente = !sesion.duracionSolicitadaMinutos; 
+    let tiempoRestanteSegundos = sesion.tiempoRestanteSegundos; 
+    
+    if (!esContadorAscendente) { 
+      const finEstimado = inicio.getTime() + sesion.duracionSolicitadaMinutos! * 60 * 1000; 
+      const restante = Math.floor((finEstimado - ahora.getTime()) / 1000); 
+      tiempoRestanteSegundos = restante > 0 ? restante : 0; 
+      if (tiempoRestanteSegundos === 0 && sesion.estado === 'ACTIVA') { 
+        this.reproducirSonidoAlerta(); 
+      } 
+    } 
+    
+    const precioPorSegundo = (sesion.precioPorHora || 0) / 3600; 
+    const valorTiempo = precioPorSegundo * tiempoTranscurridoSegundos; 
+    const valorProductos = sesion.productosAdicionales?.reduce((total, item) => total + item.total, 0) || 0; 
+    
+    // --- LÓGICA DEL CARGO ADICIONAL ($1000 por hora completa) ---
+    let valorControlAdicional = 0;
+    if (sesion.aplicarControlAdicional) {
+      // Calcular las horas completas transcurridas (e.g., 1:59:59 -> 1, 2:00:00 -> 2)
+      const horasIniciadas = Math.floor((tiempoTranscurridoSegundos - 1) / 3600) + 1;
+      //const horasCompletas = Math.floor(tiempoTranscurridoSegundos / 3600);
+      // Cargo de $1000 COP por cada hora completa
+      valorControlAdicional = horasIniciadas * 1000;
+      //valorControlAdicional = horasCompletas * 1000;
+    }
+    // -----------------------------------------------------------
+
+    // El valorTotal incluye el valor del tiempo, productos y el cargo de control
+    const valorTotal = valorTiempo + valorProductos + valorControlAdicional;
+    
+    return { 
+      ...sesion, 
+      tiempoTranscurridoSegundos, 
+      esContadorAscendente, 
+      tiempoRestanteSegundos, 
+      valorTiempo, 
+      valorProductos, 
+      valorControlAdicional, // Asegura que el valor esté en el objeto de la sesión
+      valorTotal 
+    }; 
+  }
+  
+  // Función para manejar el cambio del checkbox y forzar la actualización de la sesión
+  onToggleControlAdicional(sesion: SesionTiempoUI, nuevoEstado: boolean): void {    // La mutación se maneja en el two-way binding ([ngModel]) en el HTML.
+    // Aquí solo forzamos el cálculo inmediato para actualizar el valorTotal.
+    this.sesionesActivas.update(sesiones => sesiones.map(s => {
+    if (s.id === sesion.id) {
+      const sesionConNuevoEstado = { ...s, aplicarControlAdicional: nuevoEstado };
+        // Ejecutamos la lógica de actualización inmediatamente
+      return this.actualizarEstadoSesion(sesionConNuevoEstado);      
+    }
+    
+    return s;
+    }));
+    console.log('Cambio en el checkbox de control adicional para la sesión:', 
+      sesion.id, 'Nuevo estado:', nuevoEstado);
+  }
+  
   formatTiempo(segundos: number): string { if (isNaN(segundos) || segundos < 0) segundos = 0; const s = Math.floor(segundos % 60); const m = Math.floor(segundos / 60) % 60; const h = Math.floor(segundos / 3600); return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`; }
   formatCurrency(value: number): string { if (isNaN(value)) value = 0; return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value); }
   private mostrarNotificacion(mensaje: string, tipo: 'success' | 'error' = 'success'): void { this.snackBar.open(mensaje, 'Cerrar', { duration: 3000, panelClass: tipo === 'success' ? ['bg-green-500', 'text-white'] : ['bg-red-500', 'text-white'] }); }

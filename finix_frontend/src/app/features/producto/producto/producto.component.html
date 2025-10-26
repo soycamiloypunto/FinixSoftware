@@ -6,12 +6,17 @@
             <mat-icon>add</mat-icon>
             <span>Crear Producto</span>
         </app-custom-button>
-
-        
     </mat-toolbar>
 
+    <mat-card class="mb-6 p-4">
+        <mat-form-field appearance="fill" class="w-full">
+            <mat-label>Filtrar Productos por Nombre, Proveedor o Precio</mat-label>
+            <input matInput (keyup)="applyFilter($event)" placeholder="Buscar..." #input>
+            <mat-icon matPrefix>search</mat-icon>
+        </mat-form-field>
+    </mat-card>
     <div class="mat-elevation-z4 overflow-hidden rounded-lg bg-white">
-        <table mat-table [dataSource]="productos()" class="w-full">
+        <table mat-table [dataSource]="dataSource" class="w-full"> 
 
             <ng-container matColumnDef="nombre">
                 <th mat-header-cell *matHeaderCellDef class="text-sm font-semibold text-gray-600 bg-gray-100"> Nombre </th>
@@ -53,13 +58,20 @@
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="hover:bg-gray-50 transition-colors duration-200"></tr>
 
-             @if (!productos().length) {
+             @if (!dataSource.data.length && !isLoading()) {
                 <tr class="mat-row">
                     <td class="mat-cell text-center p-6 text-gray-500" [attr.colspan]="displayedColumns.length">
-                        No hay productos para mostrar.
+                        No hay productos que coincidan con el filtro.
                     </td>
                 </tr>
             }
         </table>
-    </div>
+        
+        <mat-paginator 
+            [pageSizeOptions]="[10, 50, 100]" 
+            showFirstLastButtons 
+            aria-label="Selecciona página de productos"
+            [pageSize]="10">
+        </mat-paginator>
+        </div>
 </div>

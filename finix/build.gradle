@@ -33,6 +33,21 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // AÑADIR ESTAS DEPENDENCIAS DE SEGURIDAD
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // Dependencia para Java 21 (como se ve en tu imagen)
+    // implementation 'org.springframework.boot:spring-boot-starter-validation' // Si usas validaciones
+
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // LIBRERÍAS PARA GENERAR JSON WEB TOKEN (JWT)
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.5'  // API principal (con parserBuilder())
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'   // Implementación del parser/builder
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5' // Para manejo de JSON
+
+
 }
 
 tasks.named('test') {

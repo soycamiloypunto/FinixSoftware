@@ -1,0 +1,48 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.2.5' // Usando tu versión
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.cristiancamilo.finix'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    sourceCompatibility = '21'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    // --- NÚCLEO REACTIVO ---
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // --- PERSISTENCIA (Para leer el usuario de la BD existente) ---
+    // NOTA: Usamos JPA para leer la BD bloqueante de MVC. Si fuera 100% reactivo, usarías R2DBC.
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    // Tu driver de base de datos
+    runtimeOnly("com.mysql:mysql-connector-j")
+
+    // --- JWT ---
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+
+
+    // --- LOMBOK Y HERRAMIENTAS ---
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // --- TEST ---
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.projectreactor:reactor-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

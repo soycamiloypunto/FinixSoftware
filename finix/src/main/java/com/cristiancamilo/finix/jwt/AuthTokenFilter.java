@@ -32,38 +32,42 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+        String jwt = parseJwt(request);
+
         try {
-            // 1. Extraer el JWT del Header
-            String jwt = parseJwt(request);
+            // Verifica si hay un JWT antes de intentar cualquier validación.
+            if (jwt != null) {
 
-            if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
+                if (jwtUtils.validateJwtToken(jwt)) {
+                    // 2. Obtener claims (datos) del token validado
+                    Claims claims = jwtUtils.getClaimsFromJwtToken(jwt);
+                    String username = claims.getSubject();
+                    // Conversión segura de roles (como hicimos antes)
+                    List<String> roles = ((List<?>) claims.get("roles")).stream()
+                            .map(Object::toString)
+                            .collect(Collectors.toList());
 
-                // 2. Obtener claims (datos) del token validado
-                Claims claims = jwtUtils.getClaimsFromJwtToken(jwt);
-                String username = claims.getSubject();
-                // La lista de roles viene como List<String>
-                List<String> roles = (List<String>) claims.get("roles");
+                    // 3-6. Crear UserDetails y establecer autenticación
+                    List<GrantedAuthority> authorities = roles.stream()
+                            .map(SimpleGrantedAuthority::new)
+                            .collect(Collectors.toList());
 
-                // 3. Convertir roles a GrantedAuthority
-                List<GrantedAuthority> authorities = roles.stream()
-                        .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toList());
-
-                // 4. Crear el objeto UserDetails (sin necesidad de buscar en la BD)
-                UserDetails userDetails = new User(username, "", authorities);
-
-                // 5. Crear el objeto de Autenticación de Spring Security
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                // 6. Establecer la autenticación en el Contexto de Seguridad
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                    UserDetails userDetails = new User(username, "", authorities);
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else {
+                    // Si el token no es válido (ej. expirado o mala firma)
+                    // CORRECCIÓN DE LOGGER: pasar el URI como argumento
+                    logger.warn("Token JWT inválido o expirado para la URI: {}");
+                }
             }
+            // Si jwt es null, simplemente pasa al siguiente filtro sin autenticar.
         } catch (Exception e) {
-            // Manejar error de autenticación (ej. token inválido o expirado)
-            logger.error("No se puede establecer la autenticación del usuario: {}", e);
+            // Manejar error crítico de autenticación
+            // CORRECCIÓN DE LOGGER: pasar el URI y el mensaje de error
+            logger.error("Error al procesar token JWT para {}: {}");
         }
 
         filterChain.doFilter(request, response);
@@ -73,10 +77,13 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     private String parseJwt(HttpServletRequest request) {
         String headerAuth = request.getHeader("Authorization");
 
+        // Esta línea es crucial: si el header existe y comienza con Bearer
         if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
             return headerAuth.substring(7);
         }
 
+        // Si no hay header o no tiene formato Bearer, devolvemos null,
+        // lo cual es correcto.
         return null;
     }
 }

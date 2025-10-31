@@ -1,72 +1,84 @@
 package com.cristiancamilo.finix.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.http.HttpMethod; // Importación necesaria para HttpMethod
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; // <-- Nueva Importación
+import org.springframework.security.crypto.password.PasswordEncoder; // <-- Nueva Importación
 
-import com.cristiancamilo.finix.jwt.AuthTokenFilter;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import java.util.Arrays;
+import java.util.List;
 
 @Configuration
-@EnableWebSecurity // Habilita la seguridad web de Spring
-// Habilita las anotaciones de seguridad como @PreAuthorize y @PostAuthorize
-@EnableMethodSecurity
+@EnableWebSecurity // Asumo que usas esta anotación
 public class SecurityConfig {
 
-    @Autowired
-    private AuthTokenFilter authTokenFilter;
-
+    // 💡 SOLUCIÓN DEL ERROR DE INYECCIÓN DE DEPENDENCIA 💡
     /**
-     * Define el bean para el encriptador de contraseñas (BCryptPasswordEncoder)
-     * Este bean será inyectado en el UsuarioService.
+     * Define el bean para el encriptador de contraseñas, necesario para
+     * que UsuarioService pueda autowirearlo.
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+    // ... (Otros beans como PasswordEncoder, etc.) ...
+
+    /**
+     * Define la configuración de CORS para el filtro de Spring Security.
+     * Esta configuración es necesaria para que las peticiones OPTIONS (preflight)
+     * sean manejadas correctamente por Spring Security antes del JWT Filter.
+     */
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // 💡 Origen de Angular 💡
+        configuration.setAllowedOrigins(List.of("http://localhost:4200"));
+
+        // Métodos, incluyendo OPTIONS para el preflight
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+
+        // Headers permitidos, cruciales para el JWT Bearer Token
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
+
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration); // Aplicar a todas las rutas
+        return source;
     }
 
     /**
      * Configura la cadena de filtros de seguridad.
      */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Como usarás JWT (futuro WebFlux) y Angular, deshabilitas CSRF
-                .csrf(AbstractHttpConfigurer::disable)
+                // 💡 1. Habilitar y aplicar la configuración CORS definida arriba 💡
+                // Esto asegura que el filtro CORS se ejecute antes que los filtros de seguridad.
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                // La política de sesión es STATELESS (sin estado) para APIs REST con JWT
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // 2. Deshabilitar CSRF para APIs REST
+                .csrf(csrf -> csrf.disable())
 
-                // Define las reglas de autorización para las peticiones HTTP
+                // 3. Permitir peticiones OPTIONS (preflight) sin autenticación
+                // Esto es fundamental para que el navegador complete el handshake CORS
                 .authorizeHttpRequests(auth -> auth
-
-                        // 1. EL ENDPOINT DE CREACIÓN DE USUARIOS: Lo haremos público temporalmente
-                        //    para que puedas crear tu primer usuario ADMINISTRADOR sin login.
-                        //    POST /api/usuarios es el endpoint de creación.
-                        .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
-
-                        // 2. REGLA PARA EL CRUD DE USUARIOS: Solo accesible por el rol ADMINISTRADOR.
-                        //    Esto asegura que, después de crear tu primer ADMIN, solo él pueda ver/editar.
-                        .requestMatchers("/api/usuarios/**").hasRole("ADMINISTRADOR")
-
-                        // 3. OTRAS RUTAS (Tus otros controladores de negocio)
-                        //    Por defecto, cualquier otra ruta (GET, POST, etc.) requiere autenticación.
+                        // *** FIX: Reemplazar antMatchers por requestMatchers ***
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // Aquí van tus reglas de autenticación JWT
+                        // Ejemplo: .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated()
                 );
 
-        http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
-        // En un proyecto real, se añadiría aquí la configuración de un filtro JWT
-        // para manejar la autenticación. Por ahora, solo usamos la gestión de roles.
+        // ... (Añadir tu filtro JWT y otras configuraciones aquí) ...
 
         return http.build();
     }

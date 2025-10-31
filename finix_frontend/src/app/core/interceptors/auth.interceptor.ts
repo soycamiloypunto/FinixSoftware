@@ -1,29 +1,38 @@
-// --- archivo: auth.interceptor.ts ---
+// src/app/core/interceptors/jwt.interceptor.ts
 
-import { HttpInterceptorFn } from '@angular/common/http';
-import { inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { Injectable } from '@angular/core';
+import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { AuthService } from '../services/auth';
 
-export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  // Inyectamos PLATFORM_ID para saber en qué entorno estamos
-  const platformId = inject(PLATFORM_ID);
-  let token: string | null = null;
+// URL del endpoint de login (para no enviar el token a sí mismo)
+const LOGIN_URL = 'http://localhost:8080/auth/login'; // ¡Ajusta el dominio/puerto!
 
-  // --- INICIO DE LA CORRECCIÓN ---
-  // Verificamos si estamos en el entorno del navegador
-  if (isPlatformBrowser(platformId)) {
-    // Si estamos en el navegador, podemos acceder a localStorage de forma segura
-    token = localStorage.getItem('auth_token');
+@Injectable()
+export class JwtInterceptor implements HttpInterceptor {
+
+  constructor(private authService: AuthService) {}
+
+  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    
+    // 1. Obtener el token de acceso
+    const accessToken = this.authService.getAccessToken();
+
+    // 2. Determinar si la solicitud necesita el header de autorización
+    // Solo se debe añadir si hay un token y si NO es la solicitud de login
+    const isLoginRequest = request.url.includes(LOGIN_URL);
+
+    if (accessToken && !isLoginRequest) {
+      // 3. Clonar la solicitud y añadir el header de autorización
+      request = request.clone({
+        setHeaders: {
+          // El formato 'Bearer <token>' es el que espera tu backend (AuthTokenFilter.java)
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
+    }
+
+    // 4. Continuar con el flujo de la solicitud modificada (o la original)
+    return next.handle(request);
   }
-  // --- FIN DE LA CORRECCIÓN ---
-
-  if (!token) {
-    return next(req);
-  }
-
-  const authReq = req.clone({
-    headers: req.headers.set('Authorization', `Bearer ${token}`)
-  });
-
-  return next(authReq);
-};
+}

@@ -8,6 +8,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { AuthService } from '../../../core/services/auth';
 
 @Component({
   selector: 'app-layout',
@@ -26,5 +27,9 @@ import { MatButtonModule } from '@angular/material/button';
   styleUrls: ['./layout.component.css']
 })
 export class LayoutComponent {
-  // Lógica del layout, si se necesitara en el futuro (ej: perfil de usuario, notificaciones)
+  constructor(private authService: AuthService) {}
+
+  logout(): void {
+    this.authService.logout();
+  }
 }

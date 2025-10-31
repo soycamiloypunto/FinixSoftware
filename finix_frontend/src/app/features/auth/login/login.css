@@ -1,0 +1,112 @@
+/* src/app/features/auth/login/login.component.css */
+
+/* Contenedor principal para centrar */
+.login-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f4f6f9; /* Fondo gris claro */
+}
+
+/* Tarjeta del formulario */
+.login-card {
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+}
+
+.title {
+    font-size: 1.8rem;
+    color: #34495e; /* Azul oscuro */
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    font-size: 1rem;
+    color: #95a5a6; /* Gris neutro */
+    margin-bottom: 25px;
+}
+
+/* Estilos de Formulario */
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #34495e;
+    font-size: 0.9rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #dcdfe6;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    box-sizing: border-box; /* Asegura que el padding no cambie el ancho total */
+}
+
+.form-group input:focus {
+    border-color: #3498db; /* Azul primario al enfocar */
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    outline: none;
+}
+
+/* Estilo de input inválido */
+.form-group input.is-invalid {
+    border-color: #e74c3c; /* Rojo de error */
+}
+
+/* Mensajes de validación */
+.validation-error {
+    color: #e74c3c;
+    font-size: 0.8rem;
+    margin-top: 4px;
+    text-align: left;
+}
+
+/* Botón de Enviar */
+.btn-submit {
+    width: 100%;
+    padding: 12px;
+    background-color: #3498db; /* Azul primario */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, opacity 0.3s;
+    margin-top: 15px;
+}
+
+.btn-submit:hover:not([disabled]) {
+    background-color: #2980b9; /* Azul más oscuro al pasar el mouse */
+}
+
+.btn-submit:disabled {
+    background-color: #bdc3c7; /* Gris claro al estar deshabilitado */
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+/* Mensaje de Error General */
+.alert-error {
+    background-color: #fce4e4;
+    color: #c0392b;
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 15px;
+    text-align: left;
+    border: 1px solid #e74c3c;
+}

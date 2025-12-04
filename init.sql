@@ -5,7 +5,6 @@ ALTER USER 'finixuser'@'%' IDENTIFIED BY 'finixpassword' PASSWORD EXPIRE NEVER;
 DROP USER IF EXISTS 'finixuser'@'localhost';
 
 -- Crear o modificar el usuario para que pueda conectarse desde CUALQUIER HOST ('%')
--- La contraseña y el nombre de usuario deben coincidir con tu docker-compose.yml
 CREATE USER IF NOT EXISTS 'finixuser'@'%' IDENTIFIED BY 'finixpassword';
 
 -- Otorgar todos los permisos a la base de datos 'finixdb' para el usuario desde cualquier host

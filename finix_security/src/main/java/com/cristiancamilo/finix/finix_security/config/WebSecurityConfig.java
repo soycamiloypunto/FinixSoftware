@@ -40,7 +40,7 @@ public class WebSecurityConfig {
         // 💡 MUY IMPORTANTE: Especificar el origen de tu frontend Angular (puerto 4200) 💡
         // En producción, reemplaza localhost:4200 por tu dominio real (ej: https://app.finix.com)
         corsConfig.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
-        corsConfig.setAllowedOrigins(Arrays.asList("http://192.168.1.110:4200"));
+
         // Métodos permitidos para peticiones Preflight y reales
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 

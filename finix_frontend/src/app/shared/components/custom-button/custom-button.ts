@@ -69,31 +69,31 @@ export class CustomButtonComponent {
     if (this.variant === 'flat') {
       switch (this.color) {
         case 'primary':
-          baseClasses.push('bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-indigo-300 focus:ring-indigo-500');
+          baseClasses.push('bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-indigo-300 dark:disabled:bg-indigo-950/50 dark:disabled:text-indigo-700 focus:ring-indigo-500');
           break;
         case 'accent':
-          baseClasses.push('bg-pink-600 text-white hover:bg-pink-700 disabled:bg-pink-300 focus:ring-pink-500');
+          baseClasses.push('bg-pink-600 text-white hover:bg-pink-700 disabled:bg-pink-300 dark:disabled:bg-pink-950/50 dark:disabled:text-pink-700 focus:ring-pink-500');
           break;
         case 'warn':
-          baseClasses.push('bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300 focus:ring-red-500');
+          baseClasses.push('bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300 dark:disabled:bg-red-950/50 dark:disabled:text-red-700 focus:ring-red-500');
           break;
         default:
-          baseClasses.push('bg-slate-200 text-slate-800 hover:bg-slate-300 disabled:bg-slate-100 disabled:text-slate-400 focus:ring-slate-400');
+          baseClasses.push('bg-slate-200 text-slate-800 hover:bg-slate-300 disabled:bg-slate-100 disabled:text-slate-400 focus:ring-slate-400 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600 dark:disabled:bg-slate-800 dark:disabled:text-slate-600');
       }
     } else { // variant === 'stroked'
       baseClasses.push('bg-transparent border');
        switch (this.color) {
         case 'primary':
-          baseClasses.push('border-indigo-600 text-indigo-600 hover:bg-indigo-50 focus:ring-indigo-500');
+          baseClasses.push('border-indigo-600 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 focus:ring-indigo-500');
           break;
         case 'accent':
-          baseClasses.push('border-pink-600 text-pink-600 hover:bg-pink-50 focus:ring-pink-500');
+          baseClasses.push('border-pink-600 text-pink-600 hover:bg-pink-50 dark:hover:bg-pink-900/20 focus:ring-pink-500');
           break;
         case 'warn':
-           baseClasses.push('border-red-600 text-red-600 hover:bg-red-50 focus:ring-red-500');
+           baseClasses.push('border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 focus:ring-red-500');
           break;
         default:
-          baseClasses.push('border-slate-300 text-slate-700 hover:bg-slate-50 focus:ring-slate-400');
+          baseClasses.push('border-slate-300 text-slate-700 dark:border-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 focus:ring-slate-400');
       }
     }
     return baseClasses;

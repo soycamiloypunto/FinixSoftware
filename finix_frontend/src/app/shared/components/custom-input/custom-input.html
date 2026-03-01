@@ -1,7 +1,8 @@
 <mat-form-field appearance="fill" class="w-full">
-  <mat-label>{{ label }}</mat-label>
+  <mat-label class="dark:text-gray-400">{{ label }}</mat-label>
   <input 
     matInput
+    class="dark:text-white"
     [type]="type"
     [placeholder]="placeholder"
     [value]="value"
@@ -10,6 +11,6 @@
     (blur)="onBlur()">
   
   @if(hint) {
-    <mat-hint>{{ hint }}</mat-hint>
+    <mat-hint class="dark:text-gray-500">{{ hint }}</mat-hint>
   }
 </mat-form-field>

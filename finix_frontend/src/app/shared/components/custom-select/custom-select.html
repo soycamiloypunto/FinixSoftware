@@ -1,6 +1,7 @@
 <mat-form-field appearance="fill" class="w-full">
-  <mat-label>{{ label }}</mat-label>
+  <mat-label class="dark:text-gray-400">{{ label }}</mat-label>
   <mat-select
+    class="dark:text-white"
     [ngModel]="value"
     [disabled]="isDisabled"
     (ngModelChange)="onChange($event)"

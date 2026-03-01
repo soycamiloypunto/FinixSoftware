@@ -68,3 +68,98 @@ body {
     display: none !important;
 }
 
+/* 7. GLOBAL DARK MODE OVERRIDES FOR MATERIAL COMPONENTS */
+.dark {
+  /* Tables */
+  .mat-mdc-table, .mdc-data-table {
+    background-color: transparent !important;
+  }
+  
+  .mat-mdc-header-cell, .mdc-data-table__header-cell {
+    background-color: #1e293b !important; /* slate-800 approx for headers */
+    color: #f1f5f9 !important; /* slate-100 */
+    border-bottom: 1px solid #334155 !important; /* slate-700 */
+  }
+
+  .mat-mdc-cell, .mdc-data-table__cell {
+    color: #cbd5e1 !important; /* slate-300 */
+    border-bottom: 1px solid #334155 !important;
+  }
+
+  .mat-mdc-row:hover, .mdc-data-table__row:hover {
+    background-color: rgba(51, 65, 85, 0.4) !important; /* slate-700 with opacity */
+  }
+
+  /* Overlays (Selects, Menus, Dialogs) */
+  .cdk-overlay-pane {
+    .mat-mdc-select-panel, 
+    .mat-mdc-menu-panel, 
+    .mat-mdc-dialog-surface,
+    .mat-mdc-autocomplete-panel {
+      background-color: #1e293b !important; /* slate-800 */
+      color: #f1f5f9 !important;
+      border: 1px solid #334155 !important;
+    }
+
+    .mat-mdc-option {
+      color: #cbd5e1 !important;
+      
+      &.mdc-list-item--selected:not(.mdc-list-item--disabled) {
+        .mdc-list-item__primary-text {
+          color: #818cf8 !important; /* indigo-400 */
+        }
+      }
+      
+      &:hover:not(.mdc-list-item--disabled) {
+        background-color: #334155 !important;
+      }
+    }
+  }
+
+  /* Form Fields adaptation */
+  .mat-mdc-form-field {
+    --mdc-filled-text-field-container-color: rgba(30, 41, 59, 0.5) !important;
+    --mdc-filled-text-field-focus-active-indicator-color: #818cf8 !important;
+    --mdc-filled-text-field-input-text-color: #f8fafc !important;
+    --mdc-filled-text-field-label-text-color: #94a3b8 !important;
+    
+    .mat-mdc-form-field-focus-overlay {
+       background-color: white; 
+       opacity: 0.05;
+    }
+  }
+
+  /* Toolbar secondary items */
+  .mat-toolbar {
+     color: #f8fafc !important;
+  }
+
+  /* Sidenav items */
+  .mat-drawer {
+    --mdc-list-list-item-label-text-color: #cbd5e1 !important;
+    --mdc-list-list-item-leading-icon-color: #94a3b8 !important;
+    
+    .mat-icon {
+        color: #94a3b8 !important; /* slate-400 */
+    }
+  }
+
+  .mat-nav-list .mat-mdc-list-item {
+    /* Hover state in dark mode */
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    /* Active state in dark mode */
+    &.bg-blue-100 {
+       background-color: rgba(59, 130, 246, 0.2) !important; /* slate-500 equivalent with alpha */
+       --mdc-list-list-item-label-text-color: #60a5fa !important;
+       --mdc-list-list-item-leading-icon-color: #60a5fa !important;
+
+       .mat-icon {
+           color: #60a5fa !important;
+       }
+    }
+  }
+}
+

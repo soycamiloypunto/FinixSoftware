@@ -35,5 +35,8 @@ public class SesionProductoAdicional {
     private BigDecimal totalVenta;
 
     @Column(nullable = false)
+    private boolean cobroPorHora = false;
+
+    @Column(nullable = false)
     private ZonedDateTime fechaCreacion = ZonedDateTime.now();
 }

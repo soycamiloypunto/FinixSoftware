@@ -1,6 +1,6 @@
-<div class="p-4 sm:p-8 bg-gray-50 min-h-screen">
-    <mat-toolbar class="bg-white shadow-md rounded-lg mb-6">
-        <h1 class="text-2xl font-bold text-gray-800 flex-auto">Historial de Ventas</h1>
+<div class="p-4 sm:p-8 bg-gray-50 dark:bg-slate-900 min-h-screen">
+    <mat-toolbar class="bg-white dark:bg-slate-800 shadow-md rounded-lg mb-6">
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100 flex-auto">Historial de Ventas</h1>
 
         <app-custom-button color="primary" (buttonClick)="abrirDialogoVenta()" [disabled]="isLoadingData()">
             <mat-icon>add_shopping_cart</mat-icon>
@@ -8,7 +8,7 @@
         </app-custom-button>
     </mat-toolbar>
 
-    <div class="mat-elevation-z4 overflow-hidden rounded-lg bg-white">
+    <div class="mat-elevation-z4 overflow-hidden rounded-lg bg-white dark:bg-slate-800">
         <table mat-table [dataSource]="ventasRecientes()" class="w-full">
 
             <ng-container matColumnDef="id">
@@ -32,7 +32,7 @@
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="displayedColumnsVentas"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumnsVentas;" class="hover:bg-gray-50"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumnsVentas;" class="hover:bg-gray-50 dark:hover:bg-slate-700"></tr>
 
             @if (!ventasRecientes().length) {
                 <tr class="mat-row">

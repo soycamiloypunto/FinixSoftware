@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -64,14 +65,24 @@ public class GestionTiempoServiceImpl implements GestionTiempoService {
 
         // Convertir la lista de productos adicionales a una lista de VentaItemDTO
         List<VentaItemDTO> productosAdicionalesDTO = sesion.getProductosAdicionales().stream()
-                .map(item -> VentaItemDTO.builder()
+                .map(item -> {
+                    // Si está terminada usamos horaFin, sino calculamos al tiempo actual.
+                    ZonedDateTime finCalculo = sesion.getEstado() == EstadoSesion.FINALIZADA && sesion.getHoraFin() != null 
+                            ? sesion.getHoraFin() 
+                            : ZonedDateTime.now(ZoneId.of("America/Bogota"));
+                    
+                    BigDecimal totalCalculado = calcularTotalItemAdicional(item, sesion.getHoraInicio(), finCalculo);
+                    
+                    return VentaItemDTO.builder()
                         .id(item.getId())
                         .productoId(item.getProducto().getId()) // <-- El ID que necesita el 'track'
                         .nombreProducto(item.getProducto().getNombre()) // <-- El nombre que faltaba
                         .cantidad(item.getCantidad())
                         .precioUnitario(item.getPrecioUnitarioVenta())
-                        .total(item.getTotalVenta()) // <-- El total que faltaba
-                        .build())
+                        .total(totalCalculado) // <-- Total dinámico
+                        .cobroPorHora(item.isCobroPorHora()) // <-- Mandamos la bandera
+                        .build();
+                })
                 .collect(Collectors.toList());
 
         // Construir y devolver el DTO principal de la sesión
@@ -86,6 +97,24 @@ public class GestionTiempoServiceImpl implements GestionTiempoService {
                 .productosAdicionales(productosAdicionalesDTO) // <-- Lista de DTOs anidada
                 .build();
     }
+
+    // --- HELPER FUNCIONAL PARA CALCULAR EL TOTAL DEL ÍTEM ---
+    private BigDecimal calcularTotalItemAdicional(SesionProductoAdicional item, ZonedDateTime inicio, ZonedDateTime fin) {
+        if (!item.isCobroPorHora()) {
+            return item.getTotalVenta(); // Devuelve el precalculado normal (cantidad * precioUnitario)
+        }
+        
+        long segundosTranscurridos = Duration.between(inicio, fin != null ? fin : ZonedDateTime.now(ZoneId.of("America/Bogota"))).getSeconds();
+        // Evitamos montos negativos en diferencias extrañas
+        segundosTranscurridos = Math.max(segundosTranscurridos, 0); 
+        
+        BigDecimal horasDecimales = BigDecimal.valueOf(segundosTranscurridos).divide(BigDecimal.valueOf(3600), 10, RoundingMode.HALF_UP);
+        BigDecimal precioBaseCantidad = item.getPrecioUnitarioVenta().multiply(BigDecimal.valueOf(item.getCantidad()));
+        
+        // Retornamos el total cobrado por las horas transcurridas escalado a dos decimales.
+        return precioBaseCantidad.multiply(horasDecimales).setScale(2, RoundingMode.HALF_UP);
+    }
+
 
 
     @Override
@@ -133,7 +162,7 @@ public class GestionTiempoServiceImpl implements GestionTiempoService {
         sesion.setHoraFin(ZonedDateTime.now(ZoneId.of("America/Bogota")));
 
         // 3. Calcular el costo del tiempo
-        BigDecimal precioPorSegundo = sesion.getProductoServicio().getPrecioVenta().divide(BigDecimal.valueOf(3600), 10, BigDecimal.ROUND_HALF_UP);
+        BigDecimal precioPorSegundo = sesion.getProductoServicio().getPrecioVenta().divide(BigDecimal.valueOf(3600), 10, RoundingMode.HALF_UP);
         long segundosTranscurridos = Duration.between(sesion.getHoraInicio(), sesion.getHoraFin()).getSeconds();
         BigDecimal totalTiempo = precioPorSegundo.multiply(BigDecimal.valueOf(segundosTranscurridos));
 
@@ -151,18 +180,29 @@ public class GestionTiempoServiceImpl implements GestionTiempoService {
         detalleTiempo.setSubtotal(totalTiempo);
         nuevaVenta.getDetalles().add(detalleTiempo);
 
-        // 6. Crear VentaDetalle para cada producto adicional
-        BigDecimal totalProductosAdicionales = BigDecimal.ZERO;
-        for (SesionProductoAdicional itemAdicional : sesion.getProductosAdicionales()) {
-            VentaDetalle detalleProducto = new VentaDetalle();
-            detalleProducto.setVenta(nuevaVenta);
-            detalleProducto.setProducto(itemAdicional.getProducto());
-            detalleProducto.setCantidad(itemAdicional.getCantidad());
-            detalleProducto.setPrecioUnitario(itemAdicional.getPrecioUnitarioVenta());
-            detalleProducto.setSubtotal(itemAdicional.getTotalVenta());
-            nuevaVenta.getDetalles().add(detalleProducto);
-            totalProductosAdicionales = totalProductosAdicionales.add(itemAdicional.getTotalVenta());
-        }
+        // 6. Crear VentaDetalle para cada producto adicional (Refactorizado con enfoque Funcional)
+        List<VentaDetalle> detallesAdicionales = sesion.getProductosAdicionales().stream()
+                .map(itemAdicional -> {
+                    BigDecimal totalCalculado = calcularTotalItemAdicional(itemAdicional, sesion.getHoraInicio(), sesion.getHoraFin());
+                    // Actualizar el valor persistido para que el historial quede con el monto final cobrado
+                    itemAdicional.setTotalVenta(totalCalculado);
+                    
+                    VentaDetalle detalleProducto = new VentaDetalle();
+                    detalleProducto.setVenta(nuevaVenta);
+                    detalleProducto.setProducto(itemAdicional.getProducto());
+                    detalleProducto.setCantidad(itemAdicional.getCantidad());
+                    detalleProducto.setPrecioUnitario(itemAdicional.getPrecioUnitarioVenta());
+                    detalleProducto.setSubtotal(totalCalculado);
+                    return detalleProducto;
+                })
+                .collect(Collectors.toList());
+        
+        nuevaVenta.getDetalles().addAll(detallesAdicionales);
+
+        // Uso de Map Reduce para calcular el total
+        BigDecimal totalProductosAdicionales = detallesAdicionales.stream()
+                .map(VentaDetalle::getSubtotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         // 7. Establecer el total de la venta y guardarla
         BigDecimal totalFinalVenta = totalTiempo.add(totalProductosAdicionales);
@@ -232,6 +272,7 @@ public class GestionTiempoServiceImpl implements GestionTiempoService {
         nuevoItem.setCantidad(request.getCantidad());
         nuevoItem.setPrecioUnitarioVenta(producto.getPrecioVenta());
         nuevoItem.setTotalVenta(producto.getPrecioVenta().multiply(BigDecimal.valueOf(request.getCantidad())));
+        nuevoItem.setCobroPorHora(request.isCobroPorHora()); // Asignamos el estatus de cobro por hora
 
         // 4. Guardar en la base de datos
         SesionProductoAdicional itemGuardado = sesionProductoAdicionalRepository.save(nuevoItem);
@@ -243,7 +284,8 @@ public class GestionTiempoServiceImpl implements GestionTiempoService {
                 .nombreProducto(itemGuardado.getProducto().getNombre())
                 .cantidad(itemGuardado.getCantidad())
                 .precioUnitario(itemGuardado.getPrecioUnitarioVenta())
-                .total(itemGuardado.getTotalVenta())
+                .total(calcularTotalItemAdicional(itemGuardado, sesion.getHoraInicio(), ZonedDateTime.now(ZoneId.of("America/Bogota"))))
+                .cobroPorHora(itemGuardado.isCobroPorHora())
                 .build();
     }
 

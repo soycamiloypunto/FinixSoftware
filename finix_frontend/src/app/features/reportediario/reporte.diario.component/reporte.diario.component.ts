@@ -22,6 +22,7 @@ import { EgresoService } from '../../egreso/services/egreso.service';
 import { VentaModel } from '../../venta/models/venta.model';
 import { CompraModel } from '../../compras/models/compra.model';
 import { EgresoModel } from '../../egreso/models/egreso.model';
+import { ReporteService } from '../services/reporte.service';
 
 
 @Component({
@@ -40,12 +41,14 @@ export class ReporteDiarioComponent implements OnInit {
   private ventaService = inject(VentaService);
   private compraService = inject(CompraService);
   private egresoService = inject(EgresoService);
+  private reporteService = inject(ReporteService);
 
   // --- Signals para el estado ---
   public isLoading = signal(false);
   public ventas = signal<VentaModel[]>([]);
   public compras = signal<CompraModel[]>([]);
   public egresos = signal<EgresoModel[]>([]);
+  public totalCajaHistorico = signal<number>(0);
 
   // --- Columnas para las tablas ---
   public displayedColumnsVentas: string[] = ['id', 'fecha', 'totalVenta'];
@@ -67,7 +70,19 @@ export class ReporteDiarioComponent implements OnInit {
 
   ngOnInit(): void {
     this.setDefaultDateRange();
+    this.buscarTotalHistorico();
     this.buscarReporte();
+  }
+
+  private buscarTotalHistorico(): void {
+    // Aseguramos que el loading spinner se mantenga mientras se resuelve esta petición rápida también
+    this.reporteService.getTotalCajaHistorico().subscribe({
+      next: (dto) => {
+          console.log('Total histórico cargado:', dto.totalHistorico);
+          this.totalCajaHistorico.set(dto.totalHistorico);
+      },
+      error: (err) => console.error("Error al cargar total de caja histórico", err)
+    });
   }
 
   private setDefaultDateRange(): void {
@@ -82,6 +97,7 @@ export class ReporteDiarioComponent implements OnInit {
       return;
     }
     this.isLoading.set(true);
+    this.buscarTotalHistorico();
     
     // Ajustamos las horas para cubrir todo el día seleccionado
     const fechaInicio = this.range.value.start;

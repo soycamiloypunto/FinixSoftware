@@ -14,4 +14,5 @@ export interface AdicionarTiempoRequest {
 export interface AgregarProductoRequest {
   productoId: number;
   cantidad: number;
+  cobroPorHora: boolean;
 }

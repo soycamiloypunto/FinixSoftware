@@ -8,4 +8,5 @@ import lombok.Data;
 public class AgregarProductoRequest {
     private Long productoId;
     private int cantidad;
+    private boolean cobroPorHora;
 }

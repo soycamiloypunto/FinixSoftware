@@ -95,6 +95,9 @@ export class ConfirmacionDialogComponent {
             @if(form.get('cantidad')?.hasError('required')) { <mat-error>La cantidad es obligatoria.</mat-error> }
             @if(form.get('cantidad')?.hasError('min')) { <mat-error>La cantidad debe ser al menos 1.</mat-error> }
         </app-custom-input>
+        <mat-checkbox formControlName="cobroPorHora" color="primary" class="mt-2">
+            Cobrar producto por horas transcurridas
+        </mat-checkbox>
       </form>
       <div dialog-actions>
         <app-custom-button variant="stroked" (buttonClick)="onNoClick()">Cancelar</app-custom-button>
@@ -106,7 +109,7 @@ export class ConfirmacionDialogComponent {
   imports: [
     CommonModule, ReactiveFormsModule, MatDialogModule, MatIconModule, MatAutocompleteModule,
     MatFormFieldModule, MatInputModule, MatError,
-    CustomInputComponent, DialogFrameComponent, CustomButtonComponent
+    CustomInputComponent, DialogFrameComponent, CustomButtonComponent, MatCheckboxModule
   ]
 })
 export class VenderProductoDialogComponent implements OnInit {
@@ -120,7 +123,8 @@ export class VenderProductoDialogComponent implements OnInit {
   constructor() {
     this.form = this.fb.group({
       productoId: [null, Validators.required],
-      cantidad: [1, [Validators.required, Validators.min(1)]]
+      cantidad: [1, [Validators.required, Validators.min(1)]],
+      cobroPorHora: [false]
     });
   }
   ngOnInit() {
@@ -162,9 +166,10 @@ export class VenderProductoDialogComponent implements OnInit {
       const result: VentaItem = {
         productoId: this.selectedProduct.id!,
         nombreProducto: this.selectedProduct.nombre,
-        cantidad: this.form.value.cantidad,
+        cantidad: Number(this.form.value.cantidad),
         precioUnitario: this.selectedProduct.precioVenta,
-        total: this.selectedProduct.precioVenta * this.form.value.cantidad
+        total: this.selectedProduct.precioVenta * Number(this.form.value.cantidad), // Precio inicial plano
+        cobroPorHora: !!this.form.value.cobroPorHora
       };
       this.dialogRef.close(result);
     }
@@ -234,11 +239,7 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
         this.productosParaVenta.set(productos.filter(p => !p.esServicioDeTiempo));
         
         const sesionesActivasUI = this.mapToSesionUI(sesionesActivas);
-        this.sesionesActivas.set(sesionesActivasUI.map(s => ({ 
-            ...s, 
-            aplicarControlAdicional: false, // Inicializamos la nueva propiedad en false
-            valorControlAdicional: 0 
-        })));
+        this.sesionesActivas.set(sesionesActivasUI);
 
         const sesionesFinalizadasUI = this.mapToSesionUI(sesionesFinalizadas);
         this.sesionesFinalizadas.set(sesionesFinalizadasUI);
@@ -307,9 +308,9 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
         const valorProductos = productosAdicionales.reduce((total: number, item: VentaItem) => total + (item.total || 0), 0);
         
         // Inicialización para sesiones finalizadas
-        const valorControlAdicional = 0;
+        const valorControlAdicional = 0; // Ya no aplica localmente, el backend suma todo en valorProductos.
         
-        const valorTotal = valorTiempo + valorProductos + valorControlAdicional;
+        const valorTotal = valorTiempo + valorProductos;
 
         // Devolvemos el objeto completo con los valores calculados
         return {
@@ -320,7 +321,6 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
           tiempoTranscurridoSegundos: tiempoTranscurridoSegundos,
           valorTiempo: valorTiempo,
           valorProductos: valorProductos,
-          valorControlAdicional: valorControlAdicional,
           valorTotal: valorTotal
         };
       });
@@ -336,9 +336,7 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
           ...nuevaSesion, 
           nombreProducto: nuevaSesion.productoServicio.nombre, 
           precioPorHora: nuevaSesion.productoServicio.precioVenta, 
-          productosAdicionales: [], 
-          aplicarControlAdicional: false, // Inicialización
-          valorControlAdicional: 0      // Inicialización
+          productosAdicionales: []
         };
         this.sesionesActivas.update(sesiones => [...sesiones, sesionUI]);
         this.mostrarNotificacion('Sesión iniciada correctamente');
@@ -352,7 +350,11 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
     const dialogRef = this.dialog.open(VenderProductoDialogComponent, { width: 'clamp(400px, 40vw, 500px)', maxWidth: '95vw', disableClose: true, panelClass: 'custom-dialog-container', data: { productos: this.productosParaVenta() } });
     dialogRef.afterClosed().subscribe((newItem: VentaItem) => {
       if (newItem) {
-        const request: AgregarProductoRequest = { productoId: newItem.productoId, cantidad: newItem.cantidad };
+        const request: AgregarProductoRequest = { 
+            productoId: newItem.productoId, 
+            cantidad: newItem.cantidad, 
+            cobroPorHora: !!newItem.cobroPorHora 
+        };
         this.tiempoService.agregarProductoASesion(sesionId, request).subscribe({
           next: (productoGuardado) => {
             this.sesionesActivas.update(sesiones => sesiones.map(s => {
@@ -360,9 +362,14 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
                 const items = [...(s.productosAdicionales || [])];
                 const existingItem = items.find(i => i.productoId === newItem.productoId);
                 if (existingItem) {
-                  existingItem.cantidad += newItem.cantidad;
+                  existingItem.cantidad = Number(existingItem.cantidad) + Number(newItem.cantidad);
                   existingItem.total = existingItem.cantidad * existingItem.precioUnitario;
-                } else { items.push(newItem); }
+                } else { 
+                  items.push({
+                    ...newItem,
+                    cantidad: Number(newItem.cantidad)
+                  }); 
+                }
                 return { ...s, productosAdicionales: items };
               }
               return s;
@@ -409,20 +416,8 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
     const valorTiempo = precioPorSegundo * tiempoTranscurridoSegundos; 
     const valorProductos = sesion.productosAdicionales?.reduce((total, item) => total + item.total, 0) || 0; 
     
-    // --- LÓGICA DEL CARGO ADICIONAL ($1000 por hora completa) ---
-    let valorControlAdicional = 0;
-    if (sesion.aplicarControlAdicional) {
-      // Calcular las horas completas transcurridas (e.g., 1:59:59 -> 1, 2:00:00 -> 2)
-      const horasIniciadas = Math.floor((tiempoTranscurridoSegundos - 1) / 3600) + 1;
-      //const horasCompletas = Math.floor(tiempoTranscurridoSegundos / 3600);
-      // Cargo de $1000 COP por cada hora completa
-      valorControlAdicional = horasIniciadas * 1000;
-      //valorControlAdicional = horasCompletas * 1000;
-    }
-    // -----------------------------------------------------------
-
-    // El valorTotal incluye el valor del tiempo, productos y el cargo de control
-    const valorTotal = valorTiempo + valorProductos + valorControlAdicional;
+    // El valorTotal incluye el valor del tiempo y productos. Todo lo adicional ya está en productos del backend.
+    const valorTotal = valorTiempo + valorProductos;
     
     return { 
       ...sesion, 
@@ -431,27 +426,11 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
       tiempoRestanteSegundos, 
       valorTiempo, 
       valorProductos, 
-      valorControlAdicional, // Asegura que el valor esté en el objeto de la sesión
       valorTotal 
     }; 
   }
-  
-  // Función para manejar el cambio del checkbox y forzar la actualización de la sesión
-  onToggleControlAdicional(sesion: SesionTiempoUI, nuevoEstado: boolean): void {    // La mutación se maneja en el two-way binding ([ngModel]) en el HTML.
-    // Aquí solo forzamos el cálculo inmediato para actualizar el valorTotal.
-    this.sesionesActivas.update(sesiones => sesiones.map(s => {
-    if (s.id === sesion.id) {
-      const sesionConNuevoEstado = { ...s, aplicarControlAdicional: nuevoEstado };
-        // Ejecutamos la lógica de actualización inmediatamente
-      return this.actualizarEstadoSesion(sesionConNuevoEstado);      
-    }
-    
-    return s;
-    }));
-    console.log('Cambio en el checkbox de control adicional para la sesión:', 
-      sesion.id, 'Nuevo estado:', nuevoEstado);
-  }
-  
+  // Ya no es necesario onToggleControlAdicional
+
   formatTiempo(segundos: number): string { if (isNaN(segundos) || segundos < 0) segundos = 0; const s = Math.floor(segundos % 60); const m = Math.floor(segundos / 60) % 60; const h = Math.floor(segundos / 3600); return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`; }
   formatCurrency(value: number): string { if (isNaN(value)) value = 0; return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value); }
   private mostrarNotificacion(mensaje: string, tipo: 'success' | 'error' = 'success'): void { this.snackBar.open(mensaje, 'Cerrar', { duration: 3000, panelClass: tipo === 'success' ? ['bg-green-500', 'text-white'] : ['bg-red-500', 'text-white'] }); }

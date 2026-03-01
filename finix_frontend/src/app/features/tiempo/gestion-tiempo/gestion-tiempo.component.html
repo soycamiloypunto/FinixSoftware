@@ -1,170 +1,206 @@
-<div class="p-4 sm:p-8 bg-gray-50 min-h-screen">
-    <mat-card class="mb-8">
-        <mat-card-header>
-            <mat-card-title class="text-xl font-semibold">Iniciar Nueva Sesión</mat-card-title>
-        </mat-card-header>
-        <mat-card-content class="pt-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-                <mat-form-field appearance="fill" class="w-full">
-                    <mat-label>Servicio (PC / Consola)</mat-label>
-                    <mat-select [(ngModel)]="nuevoProductoId" required>
-                        @for (p of productosDeTiempo(); track p.id) {
-                            <mat-option [value]="p.id">{{ p.nombre }}</mat-option>
-                        }
-                    </mat-select>
-                </mat-form-field>
-
-                <app-custom-input
-                    label="Minutos (Opcional)"
-                    type="number"
-                    placeholder="Libre si está vacío"
-                    [(ngModel)]="nuevoTiempoMinutos">
-                </app-custom-input>
-
-                <app-custom-button 
-                    color="primary" 
-                    class="w-full h-14 text-lg" 
-                    (buttonClick)="iniciarNuevaSesion()" 
-                    [disabled]="!nuevoProductoId">
-                    <mat-icon>play_circle_filled</mat-icon>
-                    <span>INICIAR</span>
-                </app-custom-button>
-            </div>
-        </mat-card-content>
-    </mat-card>
-
-    <h2 class="text-2xl font-bold text-gray-700 mb-4">Sesiones Activas</h2>
-    
-    @if (isLoading()) {
-        <div class="flex justify-center items-center h-64"><mat-progress-spinner mode="indeterminate"></mat-progress-spinner></div>
-    } @else if (sesionesActivas().length === 0) {
-        <div class="text-center p-12 bg-white rounded-lg shadow-sm border"><mat-icon class="text-6xl text-gray-300">hourglass_disabled</mat-icon><p class="mt-4 text-gray-500">No hay sesiones activas.</p></div>
-    } @else {
-        <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-            @for (sesion of sesionesActivas(); track sesion.id) {
-                <mat-card class="w-full h-full flex flex-col" [class.border-red-500]="sesion.tiempoRestanteSegundos === 0" [class.border-2]="sesion.tiempoRestanteSegundos === 0">
-                    <mat-card-header class="bg-gray-50 p-4">
-                        <mat-card-title class="text-lg font-bold">{{ sesion.nombreProducto }}</mat-card-title>
-                        <mat-card-subtitle>Inició: {{ sesion.horaInicio | date:'shortTime' }}</mat-card-subtitle>
-                    </mat-card-header>
-
-                    <mat-card-content class="flex-grow p-4 space-y-4">
-                        <div class="text-center">
-                            @if (sesion.esContadorAscendente) {
-                                <div class="text-green-600"><div class="text-sm font-medium">Tiempo Transcurrido</div><div class="text-5xl font-mono font-bold">{{ formatTiempo(sesion.tiempoTranscurridoSegundos || 0) }}</div></div>
-                            } @else {
-                                <div [class.text-red-600]="sesion.tiempoRestanteSegundos !== undefined && sesion.tiempoRestanteSegundos < 300" [class.animate-pulse]="sesion.tiempoRestanteSegundos === 0">
-                                    <div class="text-sm font-medium">Tiempo Restante</div><div class="text-5xl font-mono font-bold">{{ formatTiempo(sesion.tiempoRestanteSegundos || 0) }}</div>
-                                </div>
-                            }
-                        </div>
-
-                        <div class="border-t pt-3">
-                            <h3 class="text-sm font-semibold text-gray-600 mb-2">Consumos Adicionales:</h3>
-                            
-                            <!-- CHECKBOX DE CONTROL ADICIONAL (NUEVA FUNCIÓN) -->
-                            <mat-checkbox 
-                                class="mb-2"
-                                color="primary"
-                                [ngModel]="sesion.aplicarControlAdicional" (change)="onToggleControlAdicional(sesion, $event.checked)"> Agregar Control (+$1000/hr)
-                            </mat-checkbox>
-                            <!-- FIN CHECKBOX -->
-                            
-                            @if (!sesion.productosAdicionales?.length) {
-                                <p class="text-xs text-gray-400">Ninguno</p>
-                            } @else {
-                                <ul class="text-xs space-y-1">
-                                    @for (item of sesion.productosAdicionales; track item.productoId) {
-                                        <li class="flex justify-between">
-                                            <span>{{item.cantidad}}x {{ item.nombreProducto }}</span>
-                                            <span class="font-medium">{{ formatCurrency(item.total) }}</span>
-                                        </li>
-                                    }
-                                </ul>
-                            }
-                        </div>
-
-                        <div class="flex-grow"></div>
-                        <div class="border-t pt-3 space-y-2 text-sm">
-                             <div class="flex justify-between"><span>Consumo Tiempo:</span><span class="font-semibold">{{ formatCurrency(sesion.valorTiempo || 0) }}</span></div>
-                             <div class="flex justify-between"><span>Consumo Productos:</span><span class="font-semibold">{{ formatCurrency(sesion.valorProductos || 0) }}</span></div>
-                             
-                             <!-- LÍNEA DE CARGO ADICIONAL (CONTROL) -->
-                             @if (sesion.valorControlAdicional) {
-                                 <div class="flex justify-between text-red-600 font-medium">
-                                     <span>Consumo Adicional (Control):</span>
-                                     <span>{{ formatCurrency(sesion.valorControlAdicional || 0) }}</span>
-                                 </div>
-                             }
-                             <!-- FIN LÍNEA DE CARGO ADICIONAL -->
-                             
-                             <div class="flex justify-between font-bold text-lg border-t pt-1 mt-1"><span>TOTAL A PAGAR:</span><span>{{ formatCurrency(sesion.valorTotal || 0) }}</span></div>
-                        </div>
-                    </mat-card-content>
-                    
-                    <mat-card-actions class="p-2 border-t flex justify-around">
-                        <app-custom-button
-                            variant="stroked"
-                            color="warn"
-                            (buttonClick)="cancelarSesion(sesion)"
-                            [disabled]="!!(sesion.productosAdicionales && sesion.productosAdicionales.length > 0)"
-                            matTooltip="Cancela la sesión SOLO si no tiene productos vendidos.">
-                            <mat-icon>cancel</mat-icon> 
-                        </app-custom-button>
-                        <app-custom-button 
-                            variant="stroked" 
-                            color="accent" 
-                            (buttonClick)="abrirDialogoVender(sesion.id!)" 
-                            matTooltip="Vender producto a esta sesión">
-                            <mat-icon>add_shopping_cart</mat-icon> 
-                        </app-custom-button>
-                        
-                        <app-custom-button 
-                            color="warn" 
-                            (buttonClick)="cobrarSesion(sesion)" 
-                            class="font-bold">
-                            <mat-icon>price_check</mat-icon> COBRAR
-                        </app-custom-button>
-                    </mat-card-actions>
-                </mat-card>
+<div class="p-4 sm:p-8 bg-gray-50 dark:bg-slate-900 min-h-screen">
+  <mat-card class="mb-8 dark:bg-slate-800">
+    <mat-card-header>
+      <mat-card-title class="text-xl font-semibold dark:text-gray-100">Iniciar Nueva Sesión</mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="pt-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+        <mat-form-field appearance="fill" class="w-full">
+          <mat-label>Servicio (PC / Consola)</mat-label>
+          <mat-select [(ngModel)]="nuevoProductoId" required>
+            @for (p of productosDeTiempo(); track p.id) {
+              <mat-option [value]="p.id">{{ p.nombre }}</mat-option>
             }
-        </div>
-    }
+          </mat-select>
+        </mat-form-field>
 
-    <h2 class="text-2xl font-bold text-gray-700 mt-12 mb-4">Historial de Tiempos Cobrados</h2>
+        <app-custom-input
+          label="Minutos (Opcional)"
+          type="number"
+          placeholder="Libre si está vacío"
+          [(ngModel)]="nuevoTiempoMinutos"
+        >
+        </app-custom-input>
 
-    @if (sesionesFinalizadas().length === 0 && !isLoading()) {
-        <div class="text-center p-12 bg-white rounded-lg shadow-sm border">
-            <mat-icon class="text-6xl text-gray-300">receipt_long</mat-icon>
-            <p class="mt-4 text-gray-500">No hay sesiones finalizadas recientemente.</p>
-        </div>
-    } @else {
-        <div class="mat-elevation-z2 overflow-hidden rounded-lg bg-white">
-            <table mat-table [dataSource]="sesionesFinalizadas()" class="w-full">
+        <app-custom-button
+          color="primary"
+          class="w-full h-14 text-lg"
+          (buttonClick)="iniciarNuevaSesion()"
+          [disabled]="!nuevoProductoId"
+        >
+          <mat-icon>play_circle_filled</mat-icon>
+          <span>INICIAR</span>
+        </app-custom-button>
+      </div>
+    </mat-card-content>
+  </mat-card>
 
-                <ng-container matColumnDef="servicio">
-                    <th mat-header-cell *matHeaderCellDef> Servicio </th>
-                    <td mat-cell *matCellDef="let sesion" class="font-medium"> {{sesion.nombreProducto}} </td>
-                </ng-container>
+  <h2 class="text-2xl font-bold text-gray-700 dark:text-gray-200 mb-4">Sesiones Activas</h2>
 
-                <ng-container matColumnDef="duracion">
-                    <th mat-header-cell *matHeaderCellDef> Duración </th>
-                    <td mat-cell *matCellDef="let sesion"> {{formatTiempo(sesion.tiempoTranscurridoSegundos || 0)}} </td>
-                </ng-container>
+  @if (isLoading()) {
+    <div class="flex justify-center items-center h-64">
+      <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+    </div>
+  } @else if (sesionesActivas().length === 0) {
+    <div class="text-center p-12 bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700">
+      <mat-icon class="text-6xl text-gray-300 dark:text-gray-600">hourglass_disabled</mat-icon>
+      <p class="mt-4 text-gray-500 dark:text-gray-400">No hay sesiones activas.</p>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+      @for (sesion of sesionesActivas(); track sesion.id) {
+        <mat-card
+          class="w-full h-full flex flex-col dark:bg-slate-800"
+          [class.border-red-500]="sesion.tiempoRestanteSegundos === 0"
+          [class.border-2]="sesion.tiempoRestanteSegundos === 0"
+        >
+          <mat-card-header class="bg-gray-50 dark:bg-slate-700 p-4">
+            <mat-card-title class="text-lg font-bold dark:text-gray-100">{{ sesion.nombreProducto }}</mat-card-title>
+            <mat-card-subtitle class="dark:text-gray-400"
+              >Inició: {{ sesion.horaInicio | date: 'shortTime' }}</mat-card-subtitle
+            >
+          </mat-card-header>
 
-                <ng-container matColumnDef="total">
-                    <th mat-header-cell *matHeaderCellDef class="text-right"> Total Cobrado </th>
-                    <td mat-cell *matCellDef="let sesion" class="text-right font-semibold"> {{formatCurrency(sesion.valorTotal || 0)}} </td>
-                </ng-container>
+          <mat-card-content class="flex-grow p-4 space-y-4">
+            <div class="text-center">
+              @if (sesion.esContadorAscendente) {
+                <div class="text-green-600 dark:text-green-400">
+                  <div class="text-sm font-medium">Tiempo Transcurrido</div>
+                  <div class="text-5xl font-mono font-bold">
+                    {{ formatTiempo(sesion.tiempoTranscurridoSegundos || 0) }}
+                  </div>
+                </div>
+              } @else {
+                <div
+                  [class.text-red-600]="
+                    sesion.tiempoRestanteSegundos !== undefined &&
+                    sesion.tiempoRestanteSegundos < 300
+                  "
+                  [class.dark:text-red-400]="
+                    sesion.tiempoRestanteSegundos !== undefined &&
+                    sesion.tiempoRestanteSegundos < 300
+                  "
+                  [class.animate-pulse]="sesion.tiempoRestanteSegundos === 0"
+                >
+                  <div class="text-sm font-medium dark:text-gray-300">Tiempo Restante</div>
+                  <div class="text-5xl font-mono font-bold">
+                    {{ formatTiempo(sesion.tiempoRestanteSegundos || 0) }}
+                  </div>
+                </div>
+              }
+            </div>
 
-                <ng-container matColumnDef="fechaFin">
-                    <th mat-header-cell *matHeaderCellDef> Fecha Cobro </th>
-                    <td mat-cell *matCellDef="let sesion"> {{sesion.horaFin | date:'MMM d, h:mm a'}} </td>
-                </ng-container>
+            <div class="border-t dark:border-slate-600 pt-3">
+              <h3 class="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2">Consumos Adicionales:</h3>
 
-                <tr mat-header-row *matHeaderRowDef="displayedColumnsFinalizadas"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumnsFinalizadas;" class="hover:bg-gray-50"></tr>
-            </table>
-        </div>
-    }
+              @if (!sesion.productosAdicionales?.length) {
+                <p class="text-xs text-gray-400">Ninguno</p>
+              } @else {
+                <ul class="text-xs space-y-1">
+                  @for (item of sesion.productosAdicionales; track item.productoId) {
+                    <li class="flex justify-between">
+                      <span>
+                        {{ item.cantidad }}x {{ item.nombreProducto }}
+                        <mat-icon
+                          *ngIf="item.cobroPorHora"
+                          class="text-xs text-blue-500 align-middle ml-1 mt-[-2px]"
+                          style="height: 14px; width: 14px; font-size: 14px"
+                          >schedule</mat-icon
+                        >
+                      </span>
+                      <span class="font-medium">{{ formatCurrency(item.total) }}</span>
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+
+            <div class="flex-grow"></div>
+            <div class="border-t dark:border-slate-600 pt-3 space-y-2 text-sm dark:text-gray-200">
+              <div class="flex justify-between">
+                <span>Consumo Tiempo:</span
+                ><span class="font-semibold">{{ formatCurrency(sesion.valorTiempo || 0) }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Consumo Productos:</span
+                ><span class="font-semibold">{{ formatCurrency(sesion.valorProductos || 0) }}</span>
+              </div>
+
+              <div class="flex justify-between font-bold text-lg border-t dark:border-slate-600 pt-1 mt-1 dark:text-white">
+                <span>TOTAL A PAGAR:</span><span>{{ formatCurrency(sesion.valorTotal || 0) }}</span>
+              </div>
+            </div>
+          </mat-card-content>
+
+          <mat-card-actions class="p-2 border-t dark:border-slate-600 flex justify-around">
+            <app-custom-button
+              variant="stroked"
+              color="warn"
+              (buttonClick)="cancelarSesion(sesion)"
+              [disabled]="!!(sesion.productosAdicionales && sesion.productosAdicionales.length > 0)"
+              matTooltip="Cancela la sesión SOLO si no tiene productos vendidos."
+            >
+              <mat-icon>cancel</mat-icon>
+            </app-custom-button>
+            <app-custom-button
+              variant="stroked"
+              color="accent"
+              (buttonClick)="abrirDialogoVender(sesion.id!)"
+              matTooltip="Vender producto a esta sesión"
+            >
+              <mat-icon>add_shopping_cart</mat-icon>
+            </app-custom-button>
+
+            <app-custom-button color="warn" (buttonClick)="cobrarSesion(sesion)" class="font-bold">
+              <mat-icon>price_check</mat-icon> COBRAR
+            </app-custom-button>
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+  }
+
+  <h2 class="text-2xl font-bold text-gray-700 dark:text-gray-200 mt-12 mb-4">Historial de Tiempos Cobrados</h2>
+
+  @if (sesionesFinalizadas().length === 0 && !isLoading()) {
+    <div class="text-center p-12 bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700">
+      <mat-icon class="text-6xl text-gray-300 dark:text-gray-600">receipt_long</mat-icon>
+      <p class="mt-4 text-gray-500 dark:text-gray-400">No hay sesiones finalizadas recientemente.</p>
+    </div>
+  } @else {
+    <div class="mat-elevation-z2 overflow-hidden rounded-lg bg-white dark:bg-slate-800">
+      <table mat-table [dataSource]="sesionesFinalizadas()" class="w-full">
+        <ng-container matColumnDef="servicio">
+          <th mat-header-cell *matHeaderCellDef>Servicio</th>
+          <td mat-cell *matCellDef="let sesion" class="font-medium">{{ sesion.nombreProducto }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="duracion">
+          <th mat-header-cell *matHeaderCellDef>Duración</th>
+          <td mat-cell *matCellDef="let sesion">
+            {{ formatTiempo(sesion.tiempoTranscurridoSegundos || 0) }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="total">
+          <th mat-header-cell *matHeaderCellDef class="text-right">Total Cobrado</th>
+          <td mat-cell *matCellDef="let sesion" class="text-right font-semibold">
+            {{ formatCurrency(sesion.valorTotal || 0) }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="fechaFin">
+          <th mat-header-cell *matHeaderCellDef>Fecha Cobro</th>
+          <td mat-cell *matCellDef="let sesion">{{ sesion.horaFin | date: 'MMM d, h:mm a' }}</td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumnsFinalizadas"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumnsFinalizadas"
+          class="hover:bg-gray-50 dark:hover:bg-slate-700"
+        ></tr>
+      </table>
+    </div>
+  }
 </div>

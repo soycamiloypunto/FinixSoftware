@@ -1,5 +1,7 @@
 package com.cristiancamilo.finix.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
@@ -13,6 +15,7 @@ public class CompraDetalle {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "compra_id", nullable = false)
+    @JsonIgnore
     private Compra compra;
 
     @ManyToOne(fetch = FetchType.LAZY)

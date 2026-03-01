@@ -38,4 +38,5 @@ export interface VentaItem {
   cantidad: number;
   precioUnitario: number; // Precio al momento de la venta
   total: number;
+  cobroPorHora?: boolean;
 }

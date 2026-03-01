@@ -243,7 +243,7 @@ export class VentaDialogComponent implements OnInit {
       this.detallesVenta.update(detalles => {
           const itemExistente = detalles.find(d => d.producto.id === producto.id);
           if (itemExistente) {
-              const nuevaCantidad = itemExistente.cantidad + cantidad;
+              const nuevaCantidad = Number(itemExistente.cantidad) + Number(cantidad);
               if (nuevaCantidad <= producto.stock) {
                   itemExistente.cantidad = nuevaCantidad;
                   itemExistente.subtotal = nuevaCantidad * itemExistente.precioUnitario;
@@ -252,9 +252,9 @@ export class VentaDialogComponent implements OnInit {
               detalles.push({
                   producto: { id: producto.id },
                   nombreProducto: producto.nombre,
-                  cantidad: cantidad,
+                  cantidad: Number(cantidad),
                   precioUnitario: producto.precioVenta,
-                  subtotal: producto.precioVenta * cantidad
+                  subtotal: producto.precioVenta * Number(cantidad)
               });
           }
           return [...detalles];

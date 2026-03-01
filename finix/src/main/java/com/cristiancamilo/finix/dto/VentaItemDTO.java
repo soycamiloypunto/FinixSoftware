@@ -15,4 +15,5 @@ public class VentaItemDTO {
     private int cantidad;
     private BigDecimal precioUnitario;
     private BigDecimal total;
+    private boolean cobroPorHora;
 }

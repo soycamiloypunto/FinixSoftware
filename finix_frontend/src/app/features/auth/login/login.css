@@ -9,6 +9,10 @@
     background-color: #f4f6f9; /* Fondo gris claro */
 }
 
+.dark .login-page {
+    background-color: #0f172a; /* slate-900 */
+}
+
 /* Tarjeta del formulario */
 .login-card {
     background: #ffffff;
@@ -20,10 +24,20 @@
     text-align: center;
 }
 
+.dark .login-card {
+    background: #1e293b; /* slate-800 */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    border: 1px solid #334155;
+}
+
 .title {
     font-size: 1.8rem;
     color: #34495e; /* Azul oscuro */
     margin-bottom: 8px;
+}
+
+.dark .title {
+    color: #f1f5f9;
 }
 
 .subtitle {
@@ -46,6 +60,10 @@
     font-size: 0.9rem;
 }
 
+.dark .form-group label {
+    color: #cbd5e1;
+}
+
 .form-group input {
     width: 100%;
     padding: 12px;
@@ -54,6 +72,12 @@
     font-size: 1rem;
     transition: border-color 0.3s, box-shadow 0.3s;
     box-sizing: border-box; /* Asegura que el padding no cambie el ancho total */
+}
+
+.dark .form-group input {
+    background-color: #334155;
+    border-color: #475569;
+    color: white;
 }
 
 .form-group input:focus {

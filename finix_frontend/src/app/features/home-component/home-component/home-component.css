@@ -9,16 +9,20 @@
   align-items: center;
   
   /* Estilo del fondo como marca de agua */
-  background-color: #f8f8f8; /* Color base claro */
-  /* CAMBIO CLAVE: Se actualiza el nombre del archivo a 'background.png' */
+  background-color: #f8fafc; /* Gris muy claro para modo claro */
   background-image: url("/assets/background.png"); 
   background-repeat: no-repeat;
   background-position: center center;
-  background-size: 80%; /* Ajusta el tamaño para que se vea como marca de agua */
-  opacity: 0.95; /* Controla la opacidad del contenedor completo */
+  background-size: 60%; /* Ajuste de tamaño para marca de agua */
+  transition: background-color 0.3s ease;
 }
 
-/* Capa oscura semitransparente para mejor legibilidad del texto */
+/* En modo oscuro, adaptamos el fondo del contenedor */
+:host-context(.dark) .home-container {
+  background-color: #0f172a; /* Slate 900 */
+}
+
+/* Capa semitransparente para mejor legibilidad */
 .content-overlay {
     height: 100%;
     width: 100%;
@@ -26,7 +30,11 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    /* Efecto de 'marca de agua' con capa de fondo oscuro */
-    background-color: rgba(0, 0, 0, 0.4); /* Negro con 40% de opacidad */
+    background-color: rgba(248, 250, 252, 0.85); /* Capa clara con alta transparencia */
     padding: 2rem;
+    transition: background-color 0.3s ease;
+}
+
+:host-context(.dark) .content-overlay {
+    background-color: rgba(15, 23, 42, 0.85); /* Capa oscura en modo oscuro */
 }

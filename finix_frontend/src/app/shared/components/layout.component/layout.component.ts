@@ -31,6 +31,10 @@ import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 export class LayoutComponent {
   constructor(private authService: AuthService) {}
 
+  get isAdmin(): boolean {
+    return this.authService.getUserRoles().includes('ROLE_ADMINISTRADOR');
+  }
+
   logout(): void {
     this.authService.logout();
   }

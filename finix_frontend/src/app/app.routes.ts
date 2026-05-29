@@ -5,6 +5,7 @@ import { LayoutComponent } from './shared/components/layout.component/layout.com
 import { HomeComponent } from './features/home-component/home-component/home-component'; 
 import { LoginComponent } from './features/auth/login/login';
 import { AuthGuard } from './core/guards/auth-guard';
+import { AdminGuard } from './core/guards/admin-guard';
 
 export const routes: Routes = [
     
@@ -56,7 +57,11 @@ export const routes: Routes = [
                 path: 'reporte-diario',
                 loadComponent: () => import('../app/features/reportediario/reporte.diario.component/reporte.diario.component').then(m => m.ReporteDiarioComponent)
             },
-            // [Opcional] Añadir una ruta para crear usuarios aquí.
+            {
+                path: 'usuarios',
+                loadComponent: () => import('../app/features/usuario/usuario.component').then(m => m.UsuarioComponent),
+                canActivate: [AdminGuard]
+            }
         ]
     },
     

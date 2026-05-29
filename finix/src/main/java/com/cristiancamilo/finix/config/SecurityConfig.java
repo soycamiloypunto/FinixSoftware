@@ -59,13 +59,19 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
 
-                // 2. Definir las reglas de autorización
                 .authorizeHttpRequests(auth -> auth
                         // Permitir la solicitud OPTIONS (CORS preflight)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Permitir el acceso a todas las rutas que empiecen con /api/ si el usuario está autenticado.
-                        // Puedes especificar más rutas si es necesario, ej: .requestMatchers("/api/proveedores/**").authenticated()
+                        // Restringir el CRUD de usuarios únicamente a ADMINISTRADORES
+                        .requestMatchers("/api/usuarios/**").hasAuthority("ROLE_ADMINISTRADOR")
+
+                        // Restringir operaciones de Edición y Eliminación globalmente a ADMINISTRADORES
+                        .requestMatchers(HttpMethod.PUT, "/api/**").hasAuthority("ROLE_ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.PATCH, "/api/**").hasAuthority("ROLE_ADMINISTRADOR")
+                        .requestMatchers(HttpMethod.DELETE, "/api/**").hasAuthority("ROLE_ADMINISTRADOR")
+
+                        // Permitir GET y POST para cualquier usuario autenticado (incluye ESTANDAR)
                         .requestMatchers("/api/**").authenticated()
 
                         // Cualquier otra petición debe estar autenticada

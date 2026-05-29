@@ -32,6 +32,10 @@
         <mat-icon matListItemIcon class="dark:text-gray-300">report</mat-icon>
         <span matListItemTitle class="dark:text-gray-200">Reporte Diario</span>
       </a>
+      <a *ngIf="isAdmin" mat-list-item routerLink="/usuarios" routerLinkActive="bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+        <mat-icon matListItemIcon class="dark:text-gray-300">people</mat-icon>
+        <span matListItemTitle class="dark:text-gray-200">Usuarios</span>
+      </a>
     </mat-nav-list>
   </mat-sidenav>
   

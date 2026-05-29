@@ -60,6 +60,11 @@ public class UsuarioService {
                                 .orElseThrow(() -> new RuntimeException("Error: Rol ADMINISTRADOR no encontrado."));
                         roles.add(rolAdmin);
                         break;
+                    case "ESTANDAR":
+                        Rol rolEstandar = rolRepository.findByNombre(ERole.ROLE_ESTANDAR)
+                                .orElseThrow(() -> new RuntimeException("Error: Rol ESTANDAR no encontrado."));
+                        roles.add(rolEstandar);
+                        break;
                     case "VISUALIZACION":
                         Rol rolVisual = rolRepository.findByNombre(ERole.ROLE_VISUALIZACION)
                                 .orElseThrow(() -> new RuntimeException("Error: Rol VISUALIZACION no encontrado."));

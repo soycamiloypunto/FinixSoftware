@@ -30,6 +30,7 @@ import { GestionTiempoService } from '../services/gestiontiempo.service';
 import { ProductoService } from '../../producto/services/producto.services';
 import { ProductoModel } from '../../producto/models/producto.model';
 import { VentaItem } from '../../venta/models/venta.model';
+import { AuthService } from '../../../core/services/auth';
 
 // --- Modelo para la UI (ACTUALIZADA) ---
 export interface SesionTiempoUI extends SesionTiempoModel {
@@ -197,6 +198,11 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
   private productoService = inject(ProductoService);
   private snackBar = inject(MatSnackBar);
   public dialog = inject(MatDialog);
+  private authService = inject(AuthService);
+
+  get isAdmin(): boolean {
+    return this.authService.getUserRoles().includes('ROLE_ADMINISTRADOR');
+  }
 
   sesionesActivas = signal<SesionTiempoUI[]>([]);
   productosDeTiempo = signal<ProductoModel[]>([]);

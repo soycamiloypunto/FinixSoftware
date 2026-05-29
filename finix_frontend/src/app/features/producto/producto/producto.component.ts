@@ -21,6 +21,7 @@ import { ProductoModel } from '../models/producto.model';
 import { ProductoService } from '../services/producto.services';
 import { ProveedorModel } from '../../proveedor/models/proveedor.model';
 import { ProveedorService } from '../../proveedor/services/proveedor.services';
+import { AuthService } from '../../../core/services/auth';
 
 // --- COMPONENTES GENÉRICOS ---
 import { CustomInputComponent } from '../../../shared/components/custom-input/custom-input';
@@ -208,6 +209,7 @@ export class ProductoComponent implements OnInit {
   private proveedorService = inject(ProveedorService);
   private snackBar = inject(MatSnackBar);
   public dialog = inject(MatDialog);
+  private authService = inject(AuthService);
   
   // Referencia al componente mat-paginator en el HTML
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -220,6 +222,9 @@ displayedColumns: string[] = ['nombre', 'precioVenta','precioCompra', 'stock', '
 
   ngOnInit(): void {
     this.cargarDatos();
+    if (!this.authService.getUserRoles().includes('ROLE_ADMINISTRADOR')) {
+      this.displayedColumns = this.displayedColumns.filter(c => c !== 'acciones');
+    }
   }
 
   ngAfterViewInit(): void {

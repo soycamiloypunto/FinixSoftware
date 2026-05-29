@@ -12,7 +12,11 @@
 
 /* --- ESTILOS GLOBALES PERSONALIZADOS --- */
 
-/* 3. Estilo base para el cuerpo */
+/* 3. Estilo base para el cuerpo y escalado global (Zoom Out a 90%) */
+html {
+  font-size: 90%; /* Escalado de unidades rem para todos los navegadores (incluido Firefox) */
+}
+
 body {
   @apply bg-slate-50 text-gray-900 dark:bg-slate-900 dark:text-gray-100 transition-colors duration-300;
   font-family: 'Inter', sans-serif;

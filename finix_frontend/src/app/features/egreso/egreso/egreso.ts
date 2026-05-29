@@ -7,6 +7,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 // --- Modelos y Servicios ---
 import { EgresoModel } from '../models/egreso.model';
 import { EgresoService } from '../services/egreso.service';
+import { AuthService } from '../../../core/services/auth';
 
 // --- Módulos y Componentes Genéricos ---
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -99,12 +100,16 @@ export class EgresoComponent implements OnInit {
   private egresoService = inject(EgresoService);
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
+  private authService = inject(AuthService);
 
   egresos = signal<EgresoModel[]>([]);
   displayedColumns = ['fecha', 'concepto', 'beneficiario', 'monto', 'acciones'];
   
   ngOnInit() {
     this.cargarEgresos();
+    if (!this.authService.getUserRoles().includes('ROLE_ADMINISTRADOR')) {
+      this.displayedColumns = this.displayedColumns.filter(c => c !== 'acciones');
+    }
   }
   
   cargarEgresos() {

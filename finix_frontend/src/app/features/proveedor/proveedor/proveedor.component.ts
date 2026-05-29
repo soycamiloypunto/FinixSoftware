@@ -5,6 +5,7 @@ import { ProveedorModel } from '../models/proveedor.model';
 import { ProveedorService } from '../services/proveedor.services';
 import { CustomInputComponent } from '../../../shared/components/custom-input/custom-input';
 import { DialogFrameComponent } from '../../../shared/components/dialog-frame/dialog-frame';
+import { AuthService } from '../../../core/services/auth';
 
 
 // --- Módulos de Angular Material ---
@@ -37,6 +38,7 @@ export class ProveedorComponent implements OnInit {
   private proveedorService = inject(ProveedorService);
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
+  private authService = inject(AuthService);
 
   proveedores = signal<ProveedorModel[]>([]);
   filtro = signal<string>('');
@@ -57,6 +59,9 @@ export class ProveedorComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarProveedores();
+    if (!this.authService.getUserRoles().includes('ROLE_ADMINISTRADOR')) {
+      this.displayedColumns = this.displayedColumns.filter(c => c !== 'acciones');
+    }
   }
 
   cargarProveedores(): void {

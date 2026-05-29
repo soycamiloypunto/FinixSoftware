@@ -9,7 +9,7 @@
     background-color: #f4f6f9; /* Fondo gris claro */
 }
 
-.dark .login-page {
+:host-context(.dark) .login-page {
     background-color: #0f172a; /* slate-900 */
 }
 
@@ -24,7 +24,7 @@
     text-align: center;
 }
 
-.dark .login-card {
+:host-context(.dark) .login-card {
     background: #1e293b; /* slate-800 */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     border: 1px solid #334155;
@@ -36,7 +36,7 @@
     margin-bottom: 8px;
 }
 
-.dark .title {
+:host-context(.dark) .title {
     color: #f1f5f9;
 }
 
@@ -60,7 +60,7 @@
     font-size: 0.9rem;
 }
 
-.dark .form-group label {
+:host-context(.dark) .form-group label {
     color: #cbd5e1;
 }
 
@@ -74,7 +74,7 @@
     box-sizing: border-box; /* Asegura que el padding no cambie el ancho total */
 }
 
-.dark .form-group input {
+:host-context(.dark) .form-group input {
     background-color: #334155;
     border-color: #475569;
     color: white;

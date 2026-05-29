@@ -182,7 +182,6 @@ body {
       background-color: rgba(255, 255, 255, 0.05) !important;
     }
 
-    /* Active state in dark mode */
     &.bg-blue-100 {
        background-color: rgba(59, 130, 246, 0.2) !important; /* slate-500 equivalent with alpha */
        --mdc-list-list-item-label-text-color: #60a5fa !important;
@@ -193,4 +192,137 @@ body {
        }
     }
   }
+
+  /* Checkbox styling inside .dark */
+  .mat-mdc-checkbox {
+    --mdc-checkbox-unselected-icon-color: #cbd5e1 !important; /* slate-300 */
+    --mdc-checkbox-unselected-hover-icon-color: #f1f5f9 !important; /* slate-100 */
+    --mdc-checkbox-unselected-focus-icon-color: #f1f5f9 !important;
+    --mdc-checkbox-unselected-pressed-icon-color: #f1f5f9 !important;
+    --mdc-checkbox-selected-icon-color: #818cf8 !important; /* indigo-400 */
+    --mdc-checkbox-selected-hover-icon-color: #a5b4fc !important;
+    --mdc-checkbox-selected-focus-icon-color: #a5b4fc !important;
+    --mdc-checkbox-selected-pressed-icon-color: #a5b4fc !important;
+  }
+
+  /* Force checkbox borders and background colors */
+  .mdc-checkbox .mdc-checkbox__background {
+    border-color: #cbd5e1 !important; /* light gray/white border */
+    background-color: transparent !important;
+  }
+
+  /* When checked, fill background and set matching border */
+  .mdc-checkbox__native-control:checked ~ .mdc-checkbox__background,
+  .mdc-checkbox__native-control:indeterminate ~ .mdc-checkbox__background {
+    border-color: #818cf8 !important; /* indigo border */
+    background-color: #818cf8 !important; /* indigo background */
+  }
+
+  /* SVG checkmark path color */
+  .mdc-checkbox__checkmark {
+    stroke: #0f172a !important; /* dark checkmark color */
+  }
+  
+  .mdc-form-field {
+    color: #f1f5f9 !important;
+  }
+
+  /* Date picker inputs and text inside mat-form-field in dark mode */
+  .mat-mdc-form-field input, 
+  .mat-mdc-form-field mat-date-range-input input,
+  .mat-date-range-input-inner,
+  .mat-date-range-input-separator {
+    color: #f8fafc !important; /* slate-50 */
+  }
+
+  /* Date picker toggle icon */
+  .mat-datepicker-toggle, 
+  .mat-datepicker-toggle-default-icon {
+    color: #cbd5e1 !important;
+  }
+
+  /* General input text and placeholder color in dark mode */
+  input, 
+  textarea,
+  .mat-mdc-input-element {
+    color: #f8fafc !important;
+  }
+
+  input::placeholder, 
+  textarea::placeholder {
+    color: #94a3b8 !important; /* slate-400 */
+  }
+
+  /* Tooltips in dark mode */
+  .mdc-tooltip__surface {
+    background-color: #334155 !important; /* slate-700 */
+    color: #f8fafc !important; /* slate-50 */
+    border: 1px solid #475569 !important; /* slate-600 */
+    border-radius: 6px !important;
+  }
+
+  /* Datepicker popup calendar in dark mode */
+  .mat-datepicker-content,
+  .mat-calendar {
+    background-color: #1e293b !important; /* slate-800 */
+    color: #f1f5f9 !important;
+    border: 1px solid #334155 !important;
+  }
+
+  .mat-calendar-body-cell-content {
+    color: #f1f5f9 !important;
+  }
+
+  .mat-calendar-body-selected {
+    background-color: #818cf8 !important; /* indigo-400 */
+    color: #0f172a !important;
+  }
+
+  .mat-calendar-body-today:not(.mat-calendar-body-selected) {
+    border-color: #cbd5e1 !important;
+  }
+
+  /* Paginator in dark mode */
+  .mat-mdc-paginator {
+    background-color: transparent !important;
+    color: #f1f5f9 !important; /* slate-100 */
+  }
+
+  .mat-mdc-paginator-page-size-label,
+  .mat-mdc-paginator-range-label {
+    color: #cbd5e1 !important; /* slate-300 */
+  }
+
+  .mat-mdc-paginator .mat-mdc-select-value {
+    color: #f1f5f9 !important;
+  }
+
+  .mat-mdc-paginator .mat-mdc-select-arrow {
+    color: #cbd5e1 !important;
+  }
+
+  .mat-mdc-paginator-navigation-button,
+  .mat-mdc-paginator-navigation-button svg,
+  .mat-mdc-paginator-navigation-button path,
+  .mat-mdc-paginator-navigation-button mat-icon,
+  .mat-mdc-paginator-navigation-button .mat-icon {
+    color: #f8fafc !important; /* white/slate-50 */
+    fill: #f8fafc !important;
+  }
+
+  .mat-mdc-paginator-navigation-button[disabled],
+  .mat-mdc-paginator-navigation-button[disabled] svg,
+  .mat-mdc-paginator-navigation-button[disabled] path,
+  .mat-mdc-paginator-navigation-button[disabled] mat-icon,
+  .mat-mdc-paginator-navigation-button[disabled] .mat-icon {
+    color: #64748b !important; /* readable gray when disabled */
+    fill: #64748b !important;
+    opacity: 0.4 !important;
+  }
 }
+
+
+
+
+
+

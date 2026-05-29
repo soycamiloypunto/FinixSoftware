@@ -67,11 +67,11 @@ export class ConfirmacionDialogComponent {
 @Component({
   selector: 'app-venta-dialog',
   template: `
-    <div class="p-4 bg-gray-50 min-h-full flex flex-col">
+    <div class="p-4 bg-gray-50 dark:bg-slate-900 min-h-full flex flex-col text-gray-800 dark:text-gray-100">
       
       <div class="flex justify-between items-center mb-4">
-        <h1 class="text-xl font-bold text-gray-800">Nueva Venta</h1>
-        <button mat-icon-button (click)="onNoClick()" matTooltip="Cerrar ventana">
+        <h1 class="text-xl font-bold text-gray-800 dark:text-gray-100">Nueva Venta</h1>
+        <button mat-icon-button (click)="onNoClick()" matTooltip="Cerrar ventana" class="text-gray-500 dark:text-gray-400">
           <mat-icon>close</mat-icon>
         </button>
       </div>
@@ -88,7 +88,7 @@ export class ConfirmacionDialogComponent {
                   <mat-option [value]="option">
                     <div class="flex justify-between items-center">
                       <span>{{option.nombre}}</span>
-                      <span class="text-xs text-gray-500">Stock: {{option.stock}}</span>
+                      <span class="text-xs text-gray-500 dark:text-gray-400">Stock: {{option.stock}}</span>
                     </div>
                   </mat-option>
                 }
@@ -98,8 +98,8 @@ export class ConfirmacionDialogComponent {
             <app-custom-input class="md:col-span-2" label="Cantidad" type="number" formControlName="cantidad"></app-custom-input>
 
             <div class="md:col-span-3 text-center md:text-left pt-2">
-              <div class="text-xs text-gray-500">Subtotal</div>
-              <div class="text-xl font-semibold text-gray-800">{{ itemSubtotal() | currency:'COP':'symbol':'1.0-0' }}</div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Subtotal</div>
+              <div class="text-xl font-semibold text-gray-800 dark:text-gray-100">{{ itemSubtotal() | currency:'COP':'symbol':'1.0-0' }}</div>
             </div>
 
             <div class="md:col-span-2">
@@ -115,20 +115,20 @@ export class ConfirmacionDialogComponent {
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-grow">
         <div class="lg:col-span-2 h-full">
           <mat-card class="h-full flex flex-col">
-            <mat-card-header class="border-b"><mat-card-title class="text-lg font-semibold">Carrito</mat-card-title></mat-card-header>
+            <mat-card-header class="border-b dark:border-slate-700"><mat-card-title class="text-lg font-semibold dark:text-gray-100">Carrito</mat-card-title></mat-card-header>
             <mat-card-content class="pt-4 flex-grow flex flex-col">
               @if (detallesVenta().length === 0) {
-                <div class="flex-grow flex flex-col justify-center items-center p-12 text-gray-400 border rounded-lg mt-1 border-dashed"><mat-icon class="text-6xl">production_quantity_limits</mat-icon><p class="mt-2 font-medium">El carrito está vacío</p></div>
+                <div class="flex-grow flex flex-col justify-center items-center p-12 text-gray-400 dark:text-slate-500 border rounded-lg mt-1 border-dashed dark:border-slate-700"><mat-icon class="text-6xl">production_quantity_limits</mat-icon><p class="mt-2 font-medium">El carrito está vacío</p></div>
               } @else {
-                <div class="overflow-auto border rounded-lg">
+                <div class="overflow-auto border rounded-lg dark:border-slate-700">
                   <table mat-table [dataSource]="detallesVenta()" class="w-full">
-                    <ng-container matColumnDef="producto"><th mat-header-cell *matHeaderCellDef class="bg-gray-50">Producto</th><td mat-cell *matCellDef="let item" class="font-medium">{{item.nombreProducto}}</td></ng-container>
-                    <ng-container matColumnDef="precio"><th mat-header-cell *matHeaderCellDef class="text-right bg-gray-50">Precio</th><td mat-cell *matCellDef="let item" class="text-right">{{item.precioUnitario | currency:'COP':'symbol':'1.0-0'}}</td></ng-container>
-                    <ng-container matColumnDef="cantidad"><th mat-header-cell *matHeaderCellDef class="text-center bg-gray-50">Cantidad</th><td mat-cell *matCellDef="let item"><div class="flex items-center justify-center gap-2"><button mat-icon-button (click)="actualizarCantidad(item, -1)"><mat-icon>remove_circle_outline</mat-icon></button><span class="font-medium text-base w-6 text-center">{{item.cantidad}}</span><button mat-icon-button (click)="actualizarCantidad(item, 1)"><mat-icon>add_circle_outline</mat-icon></button></div></td></ng-container>
-                    <ng-container matColumnDef="subtotal"><th mat-header-cell *matHeaderCellDef class="text-right bg-gray-50">Subtotal</th><td mat-cell *matCellDef="let item" class="text-right font-semibold">{{item.subtotal | currency:'COP':'symbol':'1.0-0'}}</td></ng-container>
-                    <ng-container matColumnDef="acciones"><th mat-header-cell *matHeaderCellDef class="bg-gray-50"></th><td mat-cell *matCellDef="let item" class="text-right"><button mat-icon-button color="warn" (click)="eliminarItem(item.producto.id!)"><mat-icon>delete</mat-icon></button></td></ng-container>
+                    <ng-container matColumnDef="producto"><th mat-header-cell *matHeaderCellDef class="bg-gray-50 dark:bg-slate-800 dark:text-slate-200">Producto</th><td mat-cell *matCellDef="let item" class="font-medium dark:text-slate-300">{{item.nombreProducto}}</td></ng-container>
+                    <ng-container matColumnDef="precio"><th mat-header-cell *matHeaderCellDef class="text-right bg-gray-50 dark:bg-slate-800 dark:text-slate-200">Precio</th><td mat-cell *matCellDef="let item" class="text-right dark:text-slate-300">{{item.precioUnitario | currency:'COP':'symbol':'1.0-0'}}</td></ng-container>
+                    <ng-container matColumnDef="cantidad"><th mat-header-cell *matHeaderCellDef class="text-center bg-gray-50 dark:bg-slate-800 dark:text-slate-200">Cantidad</th><td mat-cell *matCellDef="let item"><div class="flex items-center justify-center gap-2"><button mat-icon-button (click)="actualizarCantidad(item, -1)" class="dark:text-slate-400 dark:hover:text-slate-200"><mat-icon>remove_circle_outline</mat-icon></button><span class="font-medium text-base w-6 text-center dark:text-slate-300">{{item.cantidad}}</span><button mat-icon-button (click)="actualizarCantidad(item, 1)" class="dark:text-slate-400 dark:hover:text-slate-200"><mat-icon>add_circle_outline</mat-icon></button></div></td></ng-container>
+                    <ng-container matColumnDef="subtotal"><th mat-header-cell *matHeaderCellDef class="text-right bg-gray-50 dark:bg-slate-800 dark:text-slate-200">Subtotal</th><td mat-cell *matCellDef="let item" class="text-right font-semibold dark:text-slate-200">{{item.subtotal | currency:'COP':'symbol':'1.0-0'}}</td></ng-container>
+                    <ng-container matColumnDef="acciones"><th mat-header-cell *matHeaderCellDef class="bg-gray-50 dark:bg-slate-800"></th><td mat-cell *matCellDef="let item" class="text-right"><button mat-icon-button color="warn" (click)="eliminarItem(item.producto.id!)"><mat-icon>delete</mat-icon></button></td></ng-container>
                     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                    <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="hover:bg-gray-50"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="hover:bg-gray-50 dark:hover:bg-slate-700/40"></tr>
                   </table>
                 </div>
               }
@@ -138,11 +138,11 @@ export class ConfirmacionDialogComponent {
 
         <div class="lg:col-span-1">
           <mat-card>
-            <mat-card-header class="border-b"><mat-card-title class="text-lg font-semibold">Resumen y Pago</mat-card-title></mat-card-header>
+            <mat-card-header class="border-b dark:border-slate-700"><mat-card-title class="text-lg font-semibold dark:text-gray-100">Resumen y Pago</mat-card-title></mat-card-header>
             <mat-card-content class="pt-4 flex flex-col gap-3">
-              <div class="flex justify-between items-baseline text-gray-700"><span class="text-xl font-medium">Total:</span><span class="font-bold text-3xl text-gray-800">{{ totalVenta() | currency:'COP':'symbol':'1.0-0' }}</span></div>
+              <div class="flex justify-between items-baseline text-gray-700 dark:text-gray-300"><span class="text-xl font-medium">Total:</span><span class="font-bold text-3xl text-gray-800 dark:text-slate-100">{{ totalVenta() | currency:'COP':'symbol':'1.0-0' }}</span></div>
               <app-custom-input label="Paga con" type="number" placeholder="0" [ngModel]="pagoCon()" (ngModelChange)="pagoCon.set($event)"></app-custom-input>
-              <div class="flex justify-between items-baseline text-gray-700"><span class="text-lg font-medium">Vueltas:</span><span class="font-semibold text-xl text-green-600">{{ vueltas() | currency:'COP':'symbol':'1.0-0' }}</span></div>
+              <div class="flex justify-between items-baseline text-gray-700 dark:text-gray-300"><span class="text-lg font-medium">Vueltas:</span><span class="font-semibold text-xl text-green-600 dark:text-green-400">{{ vueltas() | currency:'COP':'symbol':'1.0-0' }}</span></div>
               <app-custom-button color="primary" class="w-full !py-2.5 !text-base !font-bold" (buttonClick)="finalizarVenta()" [disabled]="detallesVenta().length === 0"><mat-icon>check_circle</mat-icon><span>FINALIZAR VENTA</span></app-custom-button>
             </mat-card-content>
           </mat-card>

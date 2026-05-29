@@ -108,6 +108,12 @@ public class GestionTiempoServiceImpl implements GestionTiempoService {
         // Evitamos montos negativos en diferencias extrañas
         segundosTranscurridos = Math.max(segundosTranscurridos, 0); 
         
+        // Si hay una duración solicitada (límite de tiempo), limitamos los segundos al máximo contratado
+        if (item.getSesionTiempo().getDuracionSolicitadaMinutos() != null) {
+            long segundosMaximos = item.getSesionTiempo().getDuracionSolicitadaMinutos() * 60L;
+            segundosTranscurridos = Math.min(segundosTranscurridos, segundosMaximos);
+        }
+        
         BigDecimal horasDecimales = BigDecimal.valueOf(segundosTranscurridos).divide(BigDecimal.valueOf(3600), 10, RoundingMode.HALF_UP);
         BigDecimal precioBaseCantidad = item.getPrecioUnitarioVenta().multiply(BigDecimal.valueOf(item.getCantidad()));
         
@@ -164,6 +170,13 @@ public class GestionTiempoServiceImpl implements GestionTiempoService {
         // 3. Calcular el costo del tiempo
         BigDecimal precioPorSegundo = sesion.getProductoServicio().getPrecioVenta().divide(BigDecimal.valueOf(3600), 10, RoundingMode.HALF_UP);
         long segundosTranscurridos = Duration.between(sesion.getHoraInicio(), sesion.getHoraFin()).getSeconds();
+        
+        // Si hay una duración solicitada (límite de tiempo), limitamos el costo del tiempo a esa duración
+        if (sesion.getDuracionSolicitadaMinutos() != null) {
+            long segundosMaximos = sesion.getDuracionSolicitadaMinutos() * 60L;
+            segundosTranscurridos = Math.min(segundosTranscurridos, segundosMaximos);
+        }
+        
         BigDecimal totalTiempo = precioPorSegundo.multiply(BigDecimal.valueOf(segundosTranscurridos));
 
         // 4. Crear la Venta principal

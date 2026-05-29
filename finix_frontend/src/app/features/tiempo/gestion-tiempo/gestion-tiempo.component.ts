@@ -412,8 +412,31 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
       } 
     } 
     
+    // Recalcular productos adicionales cobrados por hora en caliente
+    if (sesion.productosAdicionales) {
+      sesion.productosAdicionales.forEach(item => {
+        if (item.cobroPorHora) {
+          const precioPorSegundoProd = (item.precioUnitario * item.cantidad) / 3600;
+          let tiempoCobroProdSegundos = tiempoTranscurridoSegundos;
+          
+          // Si es cuenta regresiva y el tiempo ya expiró, se detiene al límite exacto solicitado
+          if (!esContadorAscendente && tiempoRestanteSegundos === 0) {
+            tiempoCobroProdSegundos = sesion.duracionSolicitadaMinutos! * 60;
+          }
+          
+          item.total = precioPorSegundoProd * tiempoCobroProdSegundos;
+        }
+      });
+    }
+
+    // Calcular el costo del tiempo de servicio (con tope de límite si aplica)
+    let tiempoCobroServicioSegundos = tiempoTranscurridoSegundos;
+    if (!esContadorAscendente && tiempoRestanteSegundos === 0) {
+      tiempoCobroServicioSegundos = sesion.duracionSolicitadaMinutos! * 60;
+    }
+    
     const precioPorSegundo = (sesion.precioPorHora || 0) / 3600; 
-    const valorTiempo = precioPorSegundo * tiempoTranscurridoSegundos; 
+    const valorTiempo = precioPorSegundo * tiempoCobroServicioSegundos; 
     const valorProductos = sesion.productosAdicionales?.reduce((total, item) => total + item.total, 0) || 0; 
     
     // El valorTotal incluye el valor del tiempo y productos. Todo lo adicional ya está en productos del backend.

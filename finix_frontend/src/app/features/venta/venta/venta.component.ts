@@ -120,7 +120,7 @@ export class ConfirmacionDialogComponent {
               @if (detallesVenta().length === 0) {
                 <div class="flex-grow flex flex-col justify-center items-center p-12 text-gray-400 dark:text-slate-500 border rounded-lg mt-1 border-dashed dark:border-slate-700"><mat-icon class="text-6xl">production_quantity_limits</mat-icon><p class="mt-2 font-medium">El carrito está vacío</p></div>
               } @else {
-                <div class="overflow-auto border rounded-lg dark:border-slate-700">
+                <div class="overflow-auto max-h-[350px] border rounded-lg dark:border-slate-700">
                   <table mat-table [dataSource]="detallesVenta()" class="w-full">
                     <ng-container matColumnDef="producto"><th mat-header-cell *matHeaderCellDef class="bg-gray-50 dark:bg-slate-800 dark:text-slate-200">Producto</th><td mat-cell *matCellDef="let item" class="font-medium dark:text-slate-300">{{item.nombreProducto}}</td></ng-container>
                     <ng-container matColumnDef="precio"><th mat-header-cell *matHeaderCellDef class="text-right bg-gray-50 dark:bg-slate-800 dark:text-slate-200">Precio</th><td mat-cell *matCellDef="let item" class="text-right dark:text-slate-300">{{item.precioUnitario | currency:'COP':'symbol':'1.0-0'}}</td></ng-container>

@@ -49,7 +49,7 @@ jobs:
 
       - name: Actualizar versión en build.gradle
         run: |
-          sed -i "s/version = '.*'/version = '${{ steps.version.outputs.VERSION }}'/" finix_backend/build.gradle
+          sed -i "0,/^version = '.*'/s//version = '${{ steps.version.outputs.VERSION }}'/" finix_backend/build.gradle
 
       - name: Compilar JAR (Frontend + Backend)
         working-directory: finix_backend

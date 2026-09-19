@@ -3,14 +3,15 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common'; // Para usar *ngIf
+import { CommonModule } from '@angular/common';
+import { ThemeToggleComponent } from '../../../shared/components/theme-toggle/theme-toggle.component';
 import { AuthService } from '../../../core/services/auth';// Asegúrate de que el alias o la ruta sea correcta
 import { LoginRequest } from '../../../models/auth.models'; // Asegúrate de que el alias o la ruta sea correcta
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, ThemeToggleComponent],
   templateUrl: './login.html',
   styleUrls: ['./login.css']
 })

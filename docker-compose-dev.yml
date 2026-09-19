@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  # Solo necesitamos levantar la BD para desarrollo local si la de la nube falla
+  # pero como apuntaremos a la nube, podemos dejar este archivo para Frontend
+  frontend-dev:
+    build:
+      context: ./finix_frontend
+      dockerfile: Dockerfile
+    container_name: finix-frontend-dev
+    ports:
+      - "4200:4000"
+    restart: unless-stopped
+    # El backend ahora se corre localmente con java -jar o ./gradlew bootRun

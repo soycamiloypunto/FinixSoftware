@@ -1,0 +1,32 @@
+# Environments
+.env
+.env.*
+
+# IDEs and OS files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Databases and Backups
+database/
+*.sql
+*.sqlite
+*.db
+
+# Gradle / Java
+build/
+.gradle/
+out/
+bin/
+*.class
+*.jar
+*.war
+
+# Angular / Node
+node_modules/
+dist/
+.angular/
+coverage/

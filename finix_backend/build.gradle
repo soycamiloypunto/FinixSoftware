@@ -1,0 +1,82 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.2.5'
+    id 'io.spring.dependency-management' version '1.1.4'
+    id "com.github.node-gradle.node" version "7.0.2"
+}
+
+group = 'com.cristiancamilo.finix'
+version = '1.0.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = '21'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    // AÑADIMOS WEB PARA QUE FUNCIONE MVC (Filtros, Servlets, CorsRegistry)
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+    runtimeOnly("com.mysql:mysql-connector-j")
+
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+
+    // LOMBOK
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.projectreactor:reactor-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+}
+
+node {
+    version = '20.19.0'
+    download = true
+    nodeProjectDir = file('../finix_frontend')
+}
+
+task npmInstallTask(type: NpmTask) {
+    args = ['install']
+}
+
+task buildAngularTask(type: NpmTask, dependsOn: npmInstallTask) {
+    args = ['run', 'build']
+}
+
+task copyAngularToStatic(type: Copy, dependsOn: buildAngularTask) {
+    from '../finix_frontend/dist/finix_frontend/browser'
+    into 'build/resources/main/static'
+}
+
+processResources {
+    def envFile = file("${project.rootDir}/../.env")
+    def envProps = new Properties()
+    if (envFile.exists()) {
+        envFile.withInputStream { envProps.load(it) }
+    } else {
+        // Fallback for build environments without .env
+        envProps.setProperty("DB_URL", "jdbc:mysql://localhost:3306/finixdb")
+        envProps.setProperty("DB_USER", "root")
+        envProps.setProperty("DB_PASSWORD", "")
+        envProps.setProperty("JWT_SECRET", "defaultSecret12345678901234567890123456789012345678901234567890")
+    }
+    
+    filesMatching("**/application.properties") {
+        expand(envProps)
+    }
+}
+processResources.dependsOn(copyAngularToStatic)
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

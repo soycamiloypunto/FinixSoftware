@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
 import { AuthService } from '../services/auth';
 
 // URL del endpoint de login (para no enviar el token a sí mismo)
-const LOGIN_URL = 'http://localhost:8080/auth/login'; // ¡Ajusta el dominio/puerto!
+// const LOGIN_URL = environment.apiUrl + '/auth/login'; // ¡Ajusta el dominio/puerto!
 
 @Injectable()
 export class JwtInterceptor implements HttpInterceptor {
@@ -20,7 +20,7 @@ export class JwtInterceptor implements HttpInterceptor {
 
     // 2. Determinar si la solicitud necesita el header de autorización
     // Solo se debe añadir si hay un token y si NO es la solicitud de login
-    const isLoginRequest = request.url.includes(LOGIN_URL);
+    const isLoginRequest = request.url.includes('/auth/login');
 
     if (accessToken && !isLoginRequest) {
       // 3. Clonar la solicitud y añadir el header de autorización

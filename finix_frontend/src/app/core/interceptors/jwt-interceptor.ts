@@ -4,7 +4,7 @@ import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth';
 
 // URL del endpoint de login (para no enviar el token a sí mismo)
-const LOGIN_URL = 'http://localhost:8081/auth/login'; 
+const LOGIN_URL = '/auth/login'; 
 
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
     

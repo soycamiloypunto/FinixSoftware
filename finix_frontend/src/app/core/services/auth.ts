@@ -7,7 +7,7 @@ import { Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { LoginRequest, JwtResponse } from '../../models/auth.models';
 
-const AUTH_API = 'http://localhost:8081/auth/'; 
+const AUTH_API = '/auth/'; 
 
 @Injectable({
   providedIn: 'root'

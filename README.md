@@ -1,4 +1,4 @@
-﻿# Finix Software - Versión 2.0 (Modernizada)
+# Finix Software - Versión 2.0 (Modernizada)
 
 ¡Bienvenido a la nueva arquitectura de Finix Software! Esta versión ha sido completamente refactorizada y modernizada para ofrecer mejor rendimiento, mantenibilidad y escalabilidad.
 
@@ -56,3 +56,23 @@ El proyecto usa Node.js y Gradle integrados. El archivo build.gradle está confi
 2. **Ejecutar Localmente (Desarrollo):**
    cd finix_backend
    ./gradlew bootRun
+
+## 🏷️ Cómo Publicar Nuevas Versiones (Releases)
+
+El proyecto usa GitHub Actions para generar automáticamente los instaladores nativos (.jar, .deb, .msi, .dmg) y publicarlos como Release en GitHub.
+
+Cada vez que quieras publicar una nueva versión, simplemente crea un tag y súbelo:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+Para futuras actualizaciones:
+
+```bash
+git tag v1.1.0
+git push origin v1.1.0
+```
+
+GitHub compilará automáticamente el proyecto y publicará los instaladores en la pestaña **Releases** del repositorio, listos para descargar.

@@ -59,6 +59,7 @@ jobs:
 
       - name: Renombrar JAR
         run: |
+          rm -f finix_backend/build/libs/*-plain.jar
           mv finix_backend/build/libs/*.jar finix_backend/build/libs/${{ env.APP_NAME }}-${{ steps.version.outputs.VERSION }}.jar
 
       - name: Subir JAR como artefacto

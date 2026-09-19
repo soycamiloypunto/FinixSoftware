@@ -1,0 +1,180 @@
+name: Build & Release FinixSoftware
+
+# Se dispara cuando haces push de un tag de versión (ej: v1.0.0, v1.1.0, v2.0.0)
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+env:
+  APP_NAME: FinixSoftware
+  JAVA_VERSION: '21'
+
+jobs:
+  # ========================================
+  # PASO 1: Compilar el JAR (una sola vez)
+  # ========================================
+  build-jar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Crear archivo .env desde Secrets
+        run: |
+          cat > .env << EOF
+          DB_URL=${{ secrets.DB_URL }}
+          DB_USER=${{ secrets.DB_USER }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          EOF
+
+      - name: Extraer versión del tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Actualizar versión en build.gradle
+        run: |
+          sed -i "s/version = '.*'/version = '${{ steps.version.outputs.VERSION }}'/" finix_backend/build.gradle
+
+      - name: Compilar JAR (Frontend + Backend)
+        working-directory: finix_backend
+        run: |
+          chmod +x gradlew
+          ./gradlew clean build -x test
+
+      - name: Renombrar JAR
+        run: |
+          mv finix_backend/build/libs/*.jar finix_backend/build/libs/${{ env.APP_NAME }}-${{ steps.version.outputs.VERSION }}.jar
+
+      - name: Subir JAR como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-jar
+          path: finix_backend/build/libs/${{ env.APP_NAME }}-${{ steps.version.outputs.VERSION }}.jar
+
+  # ========================================
+  # PASO 2: Crear instaladores nativos
+  # ========================================
+  build-installers:
+    needs: build-jar
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            jpackage-type: deb
+            artifact-name: linux-deb
+            extension: deb
+          - os: windows-latest
+            jpackage-type: msi
+            artifact-name: windows-msi
+            extension: msi
+          - os: macos-latest
+            jpackage-type: dmg
+            artifact-name: macos-dmg
+            extension: dmg
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Configurar JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Extraer versión del tag
+        id: version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Descargar JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+          path: input
+
+      # Linux necesita fakeroot para crear .deb
+      - name: Instalar dependencias (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y fakeroot
+
+      - name: Crear instalador con jpackage
+        shell: bash
+        run: |
+          jpackage \
+            --input input \
+            --name "${{ env.APP_NAME }}" \
+            --main-jar "${{ env.APP_NAME }}-${{ steps.version.outputs.VERSION }}.jar" \
+            --main-class org.springframework.boot.loader.launch.JarLauncher \
+            --type ${{ matrix.jpackage-type }} \
+            --app-version "${{ steps.version.outputs.VERSION }}" \
+            --vendor "Cristian Camilo" \
+            --description "FinixSoftware - Sistema de gestión integral" \
+            --dest output \
+            --java-options "-Xmx512m"
+
+      - name: Subir instalador como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: output/*.${{ matrix.extension }}
+
+  # ========================================
+  # PASO 3: Publicar GitHub Release
+  # ========================================
+  create-release:
+    needs: build-installers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extraer versión del tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Descargar todos los artefactos
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Listar artefactos
+        run: find artifacts -type f
+
+      - name: Crear Release en GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "FinixSoftware v${{ steps.version.outputs.VERSION }}"
+          body: |
+            ## 🚀 FinixSoftware v${{ steps.version.outputs.VERSION }}
+
+            ### Descargas disponibles:
+            | Plataforma | Archivo | Tipo |
+            |------------|---------|------|
+            | ☕ Multiplataforma | `FinixSoftware-${{ steps.version.outputs.VERSION }}.jar` | Ejecutable Java (requiere JDK 21) |
+            | 🐧 Linux | `FinixSoftware-${{ steps.version.outputs.VERSION }}.deb` | Paquete Debian/Ubuntu |
+            | 🪟 Windows | `FinixSoftware-${{ steps.version.outputs.VERSION }}.msi` | Instalador Windows |
+            | 🍎 macOS | `FinixSoftware-${{ steps.version.outputs.VERSION }}.dmg` | Imagen de disco macOS |
+
+            ### Requisitos:
+            - Base de datos MySQL/MariaDB configurada
+            - Para el `.jar`: JDK 21 instalado
+            - Los instaladores nativos (.deb, .msi, .dmg) incluyen su propio JDK embebido
+          draft: false
+          prerelease: false
+          files: |
+            artifacts/app-jar/*.jar
+            artifacts/linux-deb/*.deb
+            artifacts/windows-msi/*.msi
+            artifacts/macos-dmg/*.dmg

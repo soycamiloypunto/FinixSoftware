@@ -103,7 +103,7 @@
 .btn-submit {
     width: 100%;
     padding: 12px;
-    background-color: #F18701; /* Naranja corporativo */
+    background-color: var(--finix-orange); /* Naranja corporativo */
     color: white;
     border: none;
     border-radius: 8px;
@@ -115,7 +115,7 @@
 }
 
 .btn-submit:hover:not([disabled]) {
-    background-color: #F35B04; /* Naranja más oscuro/rojo */
+    background-color: var(--finix-red); /* Naranja más oscuro/rojo */
 }
 
 .btn-submit:disabled {

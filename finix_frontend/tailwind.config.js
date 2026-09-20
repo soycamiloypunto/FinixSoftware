@@ -9,11 +9,11 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'finix-dark': '#3D348B',
-        'finix-light': '#7678ED',
-        'finix-yellow': '#F7B801',
-        'finix-orange': '#F18701',
-        'finix-red': '#F35B04',
+        'finix-dark': 'var(--finix-dark)',
+        'finix-light': 'var(--finix-light)',
+        'finix-yellow': 'var(--finix-yellow)',
+        'finix-orange': 'var(--finix-orange)',
+        'finix-red': 'var(--finix-red)',
       }
     },
   },

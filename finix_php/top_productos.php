@@ -21,7 +21,7 @@ function getTopProducts($pdo, $start, $end) {
         FROM venta_detalle vd
         JOIN venta v ON vd.venta_id = v.id
         JOIN producto p ON vd.producto_id = p.id
-        WHERE v.fecha BETWEEN ? AND ?
+        WHERE v.fecha BETWEEN ? AND ? AND p.precio_venta > 0
         GROUP BY p.id, p.nombre
         ORDER BY cantidad DESC
         LIMIT 10

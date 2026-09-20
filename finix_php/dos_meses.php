@@ -4,8 +4,12 @@ require_once 'header.php';
 // Obtener las últimas 8 semanas (aprox 2 meses)
 $weeks = [];
 for ($i = 7; $i >= 0; $i--) {
-    $start = date('Y-m-d 00:00:00', strtotime("monday -$i weeks"));
-    $end = date('Y-m-d 23:59:59', strtotime("sunday -$i weeks"));
+    $ref_date = strtotime("-$i weeks");
+    $dow = date('N', $ref_date); // 1 (Lunes) a 7 (Domingo)
+    
+    $start = date('Y-m-d 00:00:00', strtotime("-" . ($dow - 1) . " days", $ref_date));
+    $end = date('Y-m-d 23:59:59', strtotime("+" . (7 - $dow) . " days", $ref_date));
+    
     $label = date('d M', strtotime($start)) . ' - ' . date('d M', strtotime($end));
     $weeks[] = ['start' => $start, 'end' => $end, 'label' => $label];
 }

@@ -1,3 +1,4 @@
+@import "finix-palette.css";
 /* --- archivo: src/styles.css --- */
 
 /* 1. IMPORTA EL TEMA PRE-CONSTRUIDO DE ANGULAR MATERIAL */
@@ -336,11 +337,29 @@ body {
 :not(.dark) .mat-mdc-raised-button.mat-primary, 
 :not(.dark) .mat-mdc-fab.mat-primary,
 :not(.dark) .mat-mdc-mini-fab.mat-primary {
-  background-color: #F18701 !important;
+  background-color: var(--finix-orange) !important;
   color: white !important;
 }
 
 :not(.dark) .mat-mdc-button.mat-primary {
-  color: #F18701 !important;
+  color: var(--finix-orange) !important;
 }
 
+html:not(.dark) .bg-finix-dark { background-color: var(--finix-dark) !important; }/* ANGULAR SIDEBAR - PHP STYLE (LIGHT MODE ONLY) */
+html:not(.dark) .mat-sidenav .mat-mdc-list-item .mat-icon,
+html:not(.dark) .mat-sidenav .mat-mdc-list-item [matListItemTitle] {
+    color: #ffffff !important;
+}
+html:not(.dark) .mat-sidenav .mat-mdc-list-item.text-finix-yellow .mat-icon,
+html:not(.dark) .mat-sidenav .mat-mdc-list-item.text-finix-yellow [matListItemTitle] {
+    color: var(--finix-yellow) !important;
+}
+html:not(.dark) .mat-sidenav .mat-mdc-list-item {
+    border-left: 4px solid transparent !important;
+}
+html:not(.dark) .mat-sidenav .mat-mdc-list-item.text-finix-yellow {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-left: 4px solid var(--finix-yellow) !important;
+    border-right: none !important;
+}
+html:not(.dark) .bg-finix-dark .mat-mdc-icon-button, html:not(.dark) .bg-finix-dark .mat-mdc-icon-button .mat-icon { color: #ffffff !important; }

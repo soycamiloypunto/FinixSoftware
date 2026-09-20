@@ -51,7 +51,7 @@ export class ReporteDiarioComponent implements OnInit {
   public totalCajaHistorico = signal<number>(0);
 
   // --- Columnas para las tablas ---
-  public displayedColumnsVentas: string[] = ['id', 'fecha', 'totalVenta'];
+  public displayedColumnsVentas: string[] = ['id', 'fecha', 'detalles', 'totalVenta'];
   public displayedColumnsCompras: string[] = ['id', 'fecha', 'totalCompra'];
   public displayedColumnsEgresos: string[] = ['id', 'fecha', 'monto', 'concepto'];
 

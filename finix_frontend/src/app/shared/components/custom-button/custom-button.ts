@@ -69,7 +69,7 @@ export class CustomButtonComponent {
     if (this.variant === 'flat') {
       switch (this.color) {
         case 'primary':
-          baseClasses.push('bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-indigo-300 dark:disabled:bg-indigo-950/50 dark:disabled:text-indigo-700 focus:ring-indigo-500');
+          baseClasses.push('bg-finix-orange text-white hover:bg-orange-600 disabled:bg-orange-300 dark:bg-indigo-600 dark:hover:bg-indigo-700 dark:disabled:bg-indigo-950/50 dark:disabled:text-indigo-700 focus:ring-finix-orange dark:focus:ring-indigo-500');
           break;
         case 'accent':
           baseClasses.push('bg-pink-600 text-white hover:bg-pink-700 disabled:bg-pink-300 dark:disabled:bg-pink-950/50 dark:disabled:text-pink-700 focus:ring-pink-500');
@@ -84,7 +84,7 @@ export class CustomButtonComponent {
       baseClasses.push('bg-transparent border');
        switch (this.color) {
         case 'primary':
-          baseClasses.push('border-indigo-600 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 focus:ring-indigo-500');
+          baseClasses.push('border-finix-orange text-finix-orange hover:bg-orange-50 dark:border-indigo-600 dark:text-indigo-400 dark:hover:bg-indigo-900/20 focus:ring-finix-orange dark:focus:ring-indigo-500');
           break;
         case 'accent':
           baseClasses.push('border-pink-600 text-pink-600 hover:bg-pink-50 dark:hover:bg-pink-900/20 focus:ring-pink-500');

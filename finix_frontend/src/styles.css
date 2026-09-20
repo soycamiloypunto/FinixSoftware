@@ -330,3 +330,17 @@ body {
 
 
 
+
+/* FINIX BRAND: PRIMARY BUTTONS (ORANGE) LIGHT MODE */
+:not(.dark) .mat-mdc-unelevated-button.mat-primary, 
+:not(.dark) .mat-mdc-raised-button.mat-primary, 
+:not(.dark) .mat-mdc-fab.mat-primary,
+:not(.dark) .mat-mdc-mini-fab.mat-primary {
+  background-color: #F18701 !important;
+  color: white !important;
+}
+
+:not(.dark) .mat-mdc-button.mat-primary {
+  color: #F18701 !important;
+}
+

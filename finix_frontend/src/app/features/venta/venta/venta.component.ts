@@ -343,7 +343,7 @@ export class VentaComponent implements OnInit {
   
   isLoadingData = signal(false);
   ventasRecientes = signal<VentaModel[]>([]);
-  displayedColumnsVentas: string[] = ['id', 'fecha', 'cliente', 'total'];
+  displayedColumnsVentas: string[] = ['id', 'fecha', 'cliente', 'detalles', 'total'];
 
   ngOnInit(): void {
     this.cargarVentasRecientes();

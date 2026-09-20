@@ -116,6 +116,15 @@ jobs:
       - name: Crear instalador con jpackage
         shell: bash
         run: |
+          EXTRA_ARGS=""
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            EXTRA_ARGS="--win-shortcut --win-menu --icon finix_logo_new.ico"
+          elif [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            EXTRA_ARGS="--linux-shortcut --icon finix_logo_new.png"
+          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+            EXTRA_ARGS="--icon finix_logo_new.icns"
+          fi
+          
           jpackage \
             --input input \
             --name "${{ env.APP_NAME }}" \
@@ -126,7 +135,8 @@ jobs:
             --vendor "Cristian Camilo" \
             --description "FinixSoftware - Sistema de gestión integral" \
             --dest output \
-            --java-options "-Xmx512m"
+            --java-options "-Xmx512m" \
+            $EXTRA_ARGS
 
       - name: Subir instalador como artefacto
         uses: actions/upload-artifact@v4

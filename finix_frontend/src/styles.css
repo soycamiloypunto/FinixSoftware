@@ -363,3 +363,4 @@ html:not(.dark) .mat-sidenav .mat-mdc-list-item.text-finix-yellow {
     border-right: none !important;
 }
 html:not(.dark) .bg-finix-dark .mat-mdc-icon-button, html:not(.dark) .bg-finix-dark .mat-mdc-icon-button .mat-icon { color: #ffffff !important; }
+html:not(.dark) .bg-finix-dark .mat-mdc-icon-button.text-red-300, html:not(.dark) .bg-finix-dark .mat-mdc-icon-button.text-red-300 .mat-icon { color: #ef4444 !important; }

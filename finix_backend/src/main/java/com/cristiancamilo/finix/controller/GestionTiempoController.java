@@ -90,9 +90,11 @@ public class GestionTiempoController {
     }
 
     @GetMapping("/finalizadas")
-    public Mono<ResponseEntity<List<SesionTiempoDTO>>> getSesionesFinalizadas() {
+    public Mono<ResponseEntity<List<SesionTiempoDTO>>> getSesionesFinalizadas(
+            @RequestParam(value = "fechaInicio", required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.ZonedDateTime fechaInicio,
+            @RequestParam(value = "fechaFin", required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME) java.time.ZonedDateTime fechaFin) {
         return Mono.fromCallable(() -> {
-            return ResponseEntity.ok(gestionTiempoService.getSesionesFinalizadas());
+            return ResponseEntity.ok(gestionTiempoService.getSesionesFinalizadas(fechaInicio, fechaFin));
         }).subscribeOn(Schedulers.boundedElastic());
     }
 }

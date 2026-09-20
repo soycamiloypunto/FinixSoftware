@@ -233,9 +233,16 @@ public class GestionTiempoServiceImpl implements GestionTiempoService {
 
     // --- NUEVO MÉTODO PARA OBTENER EL HISTORIAL ---
     @Override
-    public List<SesionTiempoDTO> getSesionesFinalizadas() {
-        List<SesionTiempo> sesionesFinalizadas = sesionTiempoRepository
+    public List<SesionTiempoDTO> getSesionesFinalizadas(java.time.ZonedDateTime inicio, java.time.ZonedDateTime fin) {
+        List<SesionTiempo> sesionesFinalizadas;
+        
+        if (inicio != null && fin != null) {
+            sesionesFinalizadas = sesionTiempoRepository
+                .findByEstadoAndHoraFinBetweenOrderByHoraFinDesc(EstadoSesion.FINALIZADA, inicio, fin);
+        } else {
+            sesionesFinalizadas = sesionTiempoRepository
                 .findTop10ByEstadoOrderByHoraFinDesc(EstadoSesion.FINALIZADA);
+        }
 
         return sesionesFinalizadas.stream()
                 .map(this::convertirASesionTiempoDTO)

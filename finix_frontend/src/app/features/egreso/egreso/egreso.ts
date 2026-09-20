@@ -11,7 +11,9 @@ import { AuthService } from '../../../core/services/auth';
 
 // --- Módulos y Componentes Genéricos ---
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { ViewChild, AfterViewInit } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -21,6 +23,7 @@ import { MatError, MatFormFieldModule } from '@angular/material/form-field';
 import { CustomButtonComponent } from '../../../shared/components/custom-button/custom-button';
 import { CustomInputComponent } from '../../../shared/components/custom-input/custom-input';
 import { DialogFrameComponent } from '../../../shared/components/dialog-frame/dialog-frame';
+import { FormsModule } from '@angular/forms';
 
 
 // --- Componente de Diálogo para Registrar Egreso ---
@@ -90,19 +93,22 @@ export class EgresoDialogComponent {
   standalone: true,
   imports: [
     CommonModule, MatToolbarModule, CustomButtonComponent, MatTableModule, MatIconModule,
-    MatDialogModule, MatSnackBarModule, MatButtonModule, MatTooltipModule
+    MatDialogModule, MatSnackBarModule, MatButtonModule, MatTooltipModule, MatPaginatorModule, FormsModule
   ],
   templateUrl: './egreso.html',
   styleUrls: ['./egreso.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EgresoComponent implements OnInit {
+export class EgresoComponent implements OnInit, AfterViewInit {
   private egresoService = inject(EgresoService);
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
   private authService = inject(AuthService);
 
-  egresos = signal<EgresoModel[]>([]);
+  dataSource = new MatTableDataSource<EgresoModel>([]);
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  fechaFiltro: string = new Date().toISOString().substring(0,10);
+  
   displayedColumns = ['fecha', 'concepto', 'beneficiario', 'monto', 'acciones'];
   
   ngOnInit() {
@@ -111,9 +117,26 @@ export class EgresoComponent implements OnInit {
       this.displayedColumns = this.displayedColumns.filter(c => c !== 'acciones');
     }
   }
+
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+  }
+
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+  }
   
   cargarEgresos() {
-    this.egresoService.getEgresos().subscribe(data => this.egresos.set(data));
+    const start = new Date(this.fechaFiltro + 'T00:00:00-05:00').getTime();
+    const end = new Date(this.fechaFiltro + 'T23:59:59-05:00').getTime();
+    this.egresoService.getEgresos().subscribe(data => {
+      const filtered = data.filter(e => {
+         const d = new Date(e.fecha).getTime();
+         return d >= start && d <= end;
+      });
+      this.dataSource.data = filtered;
+    });
   }
   
   abrirDialogoEgreso(egreso?: EgresoModel) {

@@ -19,6 +19,13 @@ export class VentaService {
     return this.http.post<VentaModel>(this.apiUrl, venta);
   }
 
+  getVentasByDateRange(fechaInicio: string, fechaFin: string): Observable<VentaModel[]> {
+    let params = new HttpParams();
+    if (fechaInicio) params = params.set('fechaInicio', fechaInicio);
+    if (fechaFin) params = params.set('fechaFin', fechaFin);
+    return this.http.get<VentaModel[]>(this.apiUrl + '/by-date', { params });
+  }
+
   // Nuevo método para traer las últimas ventas
   getUltimasVentas(limite: number): Observable<VentaModel[]> {
     // Asumimos que /api/ventas devuelve todas las ventas.

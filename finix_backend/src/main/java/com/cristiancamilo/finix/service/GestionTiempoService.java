@@ -20,5 +20,5 @@ public interface GestionTiempoService {
     VentaItemDTO agregarProductoASesion(Long sesionId, AgregarProductoRequest request);
     void cancelarSesion(Long sesionId);
     // --- LÍNEA A AÑADIR ---
-    List<SesionTiempoDTO> getSesionesFinalizadas();
+    List<SesionTiempoDTO> getSesionesFinalizadas(java.time.ZonedDateTime inicio, java.time.ZonedDateTime fin);
 }

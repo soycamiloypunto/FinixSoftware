@@ -13,4 +13,6 @@ public interface SesionTiempoRepository extends JpaRepository<SesionTiempo, Long
     List<SesionTiempo> findByEstado(EstadoSesion estado);
     List<SesionTiempo> findTop10ByEstadoOrderByHoraFinDesc(EstadoSesion estado);
 
+    // Método para historial con fechas
+    List<SesionTiempo> findByEstadoAndHoraFinBetweenOrderByHoraFinDesc(EstadoSesion estado, java.time.ZonedDateTime inicio, java.time.ZonedDateTime fin);
 }

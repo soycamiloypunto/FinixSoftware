@@ -9,7 +9,9 @@ import { Observable, map, startWith, forkJoin } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { ViewChild, AfterViewInit } from '@angular/core';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -329,13 +331,13 @@ export class VentaDialogComponent implements OnInit {
   standalone: true,
   imports: [
     CommonModule, CurrencyPipe, MatToolbarModule, MatIconModule,
-    MatTableModule, MatDialogModule, MatSnackBarModule,
+    MatTableModule, MatDialogModule, MatPaginatorModule, FormsModule, MatSnackBarModule,
     CustomButtonComponent
   ],
   templateUrl: './venta.component.html',
   styleUrls: ['./venta.component.css']
 })
-export class VentaComponent implements OnInit {
+export class VentaComponent implements OnInit, AfterViewInit {
   private ventaService = inject(VentaService);
   private productoService = inject(ProductoService);
   private clienteService = inject(ClienteService);
@@ -343,15 +345,30 @@ export class VentaComponent implements OnInit {
   
   isLoadingData = signal(false);
   ventasRecientes = signal<VentaModel[]>([]);
+  dataSource = new MatTableDataSource<VentaModel>([]);
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  fechaFiltro: string = new Date().toISOString().substring(0,10);
   displayedColumnsVentas: string[] = ['id', 'fecha', 'cliente', 'detalles', 'total'];
 
   ngOnInit(): void {
     this.cargarVentasRecientes();
   }
 
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+  }
+
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+  }
+
   cargarVentasRecientes(): void {
-    this.ventaService.getUltimasVentas(20).subscribe(data => {
+    const start = new Date(this.fechaFiltro + 'T00:00:00-05:00').toISOString();
+    const end = new Date(this.fechaFiltro + 'T23:59:59-05:00').toISOString();
+    this.ventaService.getVentasByDateRange(start, end).subscribe(data => {
       this.ventasRecientes.set(data);
+      this.dataSource.data = data;
     });
   }
 

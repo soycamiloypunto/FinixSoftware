@@ -170,7 +170,7 @@
     </div>
   } @else {
     <div class="mat-elevation-z2 overflow-hidden rounded-lg bg-white dark:bg-slate-800">
-      <table mat-table [dataSource]="sesionesFinalizadas()" class="w-full">
+      <table mat-table [dataSource]="dataSourceFinalizadas" class="w-full">
         <ng-container matColumnDef="servicio">
           <th mat-header-cell *matHeaderCellDef class="dark:bg-slate-700 dark:text-gray-100">Servicio</th>
           <td mat-cell *matCellDef="let sesion" class="font-medium dark:text-gray-200">{{ sesion.nombreProducto }}</td>
@@ -183,7 +183,19 @@
           </td>
         </ng-container>
 
-        <ng-container matColumnDef="total">
+        <ng-container matColumnDef="productosAdicionales">
+              <th mat-header-cell *matHeaderCellDef class="font-semibold text-gray-600 dark:text-gray-300"> Subproductos (Pedidos) </th>
+              <td mat-cell *matCellDef="let element" class="text-gray-800 dark:text-gray-200 py-3">
+                 <ul class="text-xs m-0 pl-4 list-disc" *ngIf="element.productosAdicionales && element.productosAdicionales.length > 0">
+                    <li *ngFor="let prod of element.productosAdicionales">
+                       {{prod.cantidad}}x {{prod.nombreProducto || prod.producto?.nombre}} (${{prod.total | number:'1.0-0'}})
+                    </li>
+                 </ul>
+                 <span *ngIf="!element.productosAdicionales || element.productosAdicionales.length === 0" class="text-gray-400 italic">Ninguno</span>
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="total">
           <th mat-header-cell *matHeaderCellDef class="text-right dark:bg-slate-700 dark:text-gray-100">Total Cobrado</th>
           <td mat-cell *matCellDef="let sesion" class="text-right font-semibold dark:text-gray-100">
             {{ formatCurrency(sesion.valorTotal || 0) }}

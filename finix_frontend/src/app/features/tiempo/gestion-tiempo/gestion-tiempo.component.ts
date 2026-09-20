@@ -15,7 +15,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatFormFieldModule, MatError } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import { ViewChild, AfterViewInit } from '@angular/core';
 import { MatCheckboxModule } from '@angular/material/checkbox'; // Añadido para el nuevo control
 
 // --- COMPONENTES GENÉRICOS ---
@@ -192,7 +194,7 @@ export class VenderProductoDialogComponent implements OnInit {
   styleUrls: ['./gestion-tiempo.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class GestionTiempoComponent implements OnInit, OnDestroy {
+export class GestionTiempoComponent implements OnInit, OnDestroy, AfterViewInit {
   private platformId = inject(PLATFORM_ID);
   private tiempoService = inject(GestionTiempoService);
   private productoService = inject(ProductoService);
@@ -210,12 +212,24 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
   isLoading = signal(true);
   
   sesionesFinalizadas = signal<SesionTiempoUI[]>([]);
-  displayedColumnsFinalizadas: string[] = ['servicio', 'duracion', 'total', 'fechaFin'];
+  dataSourceFinalizadas = new MatTableDataSource<SesionTiempoUI>([]);
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  fechaFiltro: string = new Date().toISOString().substring(0,10);
+  displayedColumnsFinalizadas: string[] = ['servicio', 'duracion', 'productosAdicionales', 'total', 'fechaFin'];
   
   nuevoProductoId?: number;
   nuevoTiempoMinutos?: number;
   private timerSubscription?: Subscription;
   private audioContext: AudioContext | null = null;
+
+  ngAfterViewInit() {
+    this.dataSourceFinalizadas.paginator = this.paginator;
+  }
+
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSourceFinalizadas.filter = filterValue.trim().toLowerCase();
+  }
 
   ngOnInit(): void {
     this.cargarDatosIniciales();
@@ -236,7 +250,7 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
     forkJoin({
       productos: this.productoService.getAll(),
       sesionesActivas: this.tiempoService.getSesionesActivas(),
-      sesionesFinalizadas: this.tiempoService.getSesionesFinalizadas()
+      sesionesFinalizadas: this.tiempoService.getSesionesFinalizadas(new Date(this.fechaFiltro + 'T00:00:00-05:00').toISOString(), new Date(this.fechaFiltro + 'T23:59:59-05:00').toISOString())
     }).pipe(
       finalize(() => this.isLoading.set(false))
     ).subscribe({
@@ -249,6 +263,8 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
 
         const sesionesFinalizadasUI = this.mapToSesionUI(sesionesFinalizadas);
         this.sesionesFinalizadas.set(sesionesFinalizadasUI);
+        this.dataSourceFinalizadas.data = sesionesFinalizadasUI;
+        this.dataSourceFinalizadas.data = sesionesFinalizadasUI;
       },
       error: (err) => this.mostrarNotificacion('Error al cargar datos iniciales', 'error')
     });
@@ -290,9 +306,12 @@ export class GestionTiempoComponent implements OnInit, OnDestroy {
   }
   
   cargarHistorial(): void {
-    this.tiempoService.getSesionesFinalizadas().subscribe(sesiones => {
+    const start = new Date(this.fechaFiltro + 'T00:00:00-05:00').toISOString();
+    const end = new Date(this.fechaFiltro + 'T23:59:59-05:00').toISOString();
+    this.tiempoService.getSesionesFinalizadas(start, end).subscribe(sesiones => {
       const sesionesUI = this.mapToSesionUI(sesiones);
       this.sesionesFinalizadas.set(sesionesUI);
+      this.dataSourceFinalizadas.data = sesionesUI;
     });
   }
 

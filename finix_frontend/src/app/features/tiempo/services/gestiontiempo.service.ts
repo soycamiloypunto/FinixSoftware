@@ -1,7 +1,7 @@
 // --- archivo: /services/sesiontiempo.service.ts ---
 
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 // --- Modelos y DTOs ---
@@ -59,7 +59,10 @@ export class GestionTiempoService {
     return this.http.post<void>(`${this.apiUrl}/${sesionId}/cancelar`, {});
     }
 
-     getSesionesFinalizadas(): Observable<SesionTiempo[]> {
-    return this.http.get<SesionTiempo[]>(`${this.apiUrl}/finalizadas`);
+     getSesionesFinalizadas(fechaInicio?: string, fechaFin?: string): Observable<SesionTiempo[]> {
+    let params = new HttpParams();
+    if (fechaInicio) params = params.set('fechaInicio', fechaInicio);
+    if (fechaFin) params = params.set('fechaFin', fechaFin);
+    return this.http.get<SesionTiempo[]>(`${this.apiUrl}/finalizadas`, { params });
   }
 }

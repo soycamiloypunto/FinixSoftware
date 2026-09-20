@@ -27,6 +27,11 @@ public class VentaServiceImpl implements VentaService {
     }
 
     @Override
+    public List<Venta> findTop20() {
+        return ventaRepository.findTop20ByOrderByFechaDesc();
+    }
+
+    @Override
     public Optional<Venta> findById(Long id) {
         return ventaRepository.findById(id);
     }

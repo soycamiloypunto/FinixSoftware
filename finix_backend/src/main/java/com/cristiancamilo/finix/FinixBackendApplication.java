@@ -10,7 +10,8 @@ public class FinixBackendApplication {
 
 
 	public static void main(String[] args) {
-		SpringApplication.run(FinixBackendApplication.class, args);
+		org.springframework.boot.builder.SpringApplicationBuilder builder = new org.springframework.boot.builder.SpringApplicationBuilder(FinixBackendApplication.class);
+		builder.headless(false).run(args);
 	}
 
 }

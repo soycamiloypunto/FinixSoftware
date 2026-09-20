@@ -22,9 +22,9 @@ public class VentaController {
     private VentaService ventaService;
 
     @GetMapping
-    public Mono<List<Venta>> getAllVentas() {
+    public Mono<List<Venta>> getVentasRecientes() {
         return Mono.fromCallable(() -> {
-            return ventaService.findAll();
+            return ventaService.findTop20();
         }).subscribeOn(Schedulers.boundedElastic());
     }
 

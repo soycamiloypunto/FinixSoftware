@@ -21,7 +21,7 @@ public class Ingreso {
     @Column(nullable = false)
     private String descripcion;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "proveedor_id") // Opcional
     private Proveedor proveedor;
 }

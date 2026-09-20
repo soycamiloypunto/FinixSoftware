@@ -17,7 +17,7 @@ public class VentaDetalle {
     @JoinColumn(name = "venta_id", nullable = false)
     private Venta venta;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 

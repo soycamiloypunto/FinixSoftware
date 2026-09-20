@@ -18,7 +18,7 @@ public class CompraDetalle {
     @JsonIgnore
     private Compra compra;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 

@@ -15,6 +15,8 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
 
     List<Venta> findByFechaBetweenOrderByFechaDesc(ZonedDateTime start, ZonedDateTime end);
     
+    List<Venta> findTop20ByOrderByFechaDesc();
+    
     @Query("SELECT COALESCE(SUM(v.totalVenta), 0) FROM Venta v")
     BigDecimal sumarTotalHistoricoVentas();
 }

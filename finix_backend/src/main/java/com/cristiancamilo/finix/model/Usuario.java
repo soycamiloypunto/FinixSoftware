@@ -19,7 +19,7 @@ public class Usuario {
     private String email;
     private String password; // ¡Debe ser la contraseña encriptada!
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "usuario_roles",
             joinColumns = @JoinColumn(name = "usuario_id"),
             inverseJoinColumns = @JoinColumn(name = "rol_id"))

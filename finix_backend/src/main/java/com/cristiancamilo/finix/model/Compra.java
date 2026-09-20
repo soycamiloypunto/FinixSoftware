@@ -20,7 +20,7 @@ public class Compra {
     private ZonedDateTime fecha = ZonedDateTime.now(ZoneId.of("America/Bogota"));
 
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "proveedor_id", nullable = false)
     private Proveedor proveedor;
 
@@ -30,6 +30,7 @@ public class Compra {
     private String numeroFactura;
 
     // Una compra se compone de varias líneas de detalle
-    @OneToMany(mappedBy = "compra", cascade = CascadeType.ALL, orphanRemoval = true)
+    @com.fasterxml.jackson.annotation.JsonManagedReference
+    @OneToMany(mappedBy = "compra", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<CompraDetalle> detalles;
 }

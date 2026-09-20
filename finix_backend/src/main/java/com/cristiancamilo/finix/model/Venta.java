@@ -21,10 +21,10 @@ public class Venta {
     private ZonedDateTime fecha = ZonedDateTime.now(ZoneId.of("America/Bogota"));
 
     @JsonManagedReference
-    @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<VentaDetalle> detalles;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "cliente_id")
     private Cliente cliente;
 

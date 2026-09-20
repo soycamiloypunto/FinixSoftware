@@ -11,6 +11,7 @@ public interface VentaService {
     Optional<Venta> findById(Long id);
     // El método save será más complejo, recibirá un objeto con los detalles de la venta
     Venta registrarVenta(Venta venta);
+    List<Venta> findTop20();
     List<Venta> findByFechaBetween(ZonedDateTime fechaInicio, ZonedDateTime fechaFin);
 
 }

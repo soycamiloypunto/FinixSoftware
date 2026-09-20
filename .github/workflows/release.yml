@@ -91,6 +91,9 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
       - name: Configurar JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
         with:
